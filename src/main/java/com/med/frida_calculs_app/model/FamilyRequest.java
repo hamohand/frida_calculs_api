@@ -65,6 +65,7 @@ public class FamilyRequest {
     /**
      * Convertit le sexe String en enum Sexe
      */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Sexe getSexeDefuntEnum() {
         return Sexe.fromCode(sexeDefunt);
     }

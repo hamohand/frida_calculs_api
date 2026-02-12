@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Frida Calculs API** - A Spring Boot REST API for calculating Islamic inheritance shares (Faraid) according to Islamic law based on Quran verses (Surah An-Nisa 4:11-12, 176).
 
 - **Language**: Java 21
-- **Framework**: Spring Boot 3.5.0
+- **Framework**: Spring Boot 3.4.2
 - **Build Tool**: Maven 3.9+
 - **API Version**: 1.0.0
 - **Port**: 8080
