@@ -57,6 +57,7 @@ public class CalculsPartsController {
         }
 
         @PostMapping("/calculate")
+        @CrossOrigin(origins = "http://localhost:4200")
         @Operation(summary = "Calculer les parts d'héritage", description = "Calcule les parts d'héritage selon la loi islamique à partir de la composition familiale")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Calcul effectué avec succès", content = @Content(schema = @Schema(implementation = HeritageResponse.class))),

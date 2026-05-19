@@ -1,0 +1,97 @@
+<div class="form-container">
+    <h2>Composition Familiale</h2>
+    <form (ngSubmit)="onSubmit()" #familyForm="ngForm">
+
+        <div class="form-group">
+            <label>Sexe du défunt</label>
+            <div class="radio-group">
+                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="M"> Homme</label>
+                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="F"> Femme</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Conjoint(s) vivant(s)</label>
+            <select name="nbConjoints" [(ngModel)]="request.nbConjoints">
+                <option [value]="0">0</option>
+                <option [value]="1">1</option>
+                <option [value]="2" *ngIf="request.sexeDefunt === 'M'">2</option>
+                <option [value]="3" *ngIf="request.sexeDefunt === 'M'">3</option>
+                <option [value]="4" *ngIf="request.sexeDefunt === 'M'">4</option>
+            </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+            <label> Parents vivants </label>
+            <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant"> Père</label>
+            <label><input type="checkbox" name="mereVivante" [(ngModel)]="request.mereVivante"> Mère</label>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Filles</label>
+                <input type="number" name="nbFilles" [(ngModel)]="request.nbFilles" min="0">
+            </div>
+            <div class="form-group">
+                <label>Garçons</label>
+                <input type="number" name="nbGarcons" [(ngModel)]="request.nbGarcons" min="0">
+            </div>
+            <div class="form-group">
+                <label>Soeurs</label>
+                <input type="number" name="nbSoeurs" [(ngModel)]="request.nbSoeurs" min="0">
+            </div>
+            <div class="form-group">
+                <label>Frères</label>
+                <input type="number" name="nbFreres" [(ngModel)]="request.nbFreres" min="0">
+            </div>
+        </div>
+
+        <button type="submit" [disabled]="!familyForm.valid || loading" class="btn-calculate">
+            {{ loading ? 'Calcul en cours...' : 'Calculer les parts' }}
+        </button>
+    </form>
+
+    <div *ngIf="error" class="error-message">
+        {{ error }}
+    </div>
+
+    <div *ngIf="result" class="results-section">
+        <h3>Résultats du partage</h3>
+        <div class="summary">
+            <p>Nombre d'héritiers : <strong>{{ result.nombreHeritiers }}</strong></p>
+            <p>Dénominateur commun : <strong>{{ result.denominateurCommun }}</strong></p>
+        </div>
+
+        <table class="results-table" *ngIf="result.heritiers && result.heritiers.length > 0">
+            <thead>
+                <tr>
+                    <th>Héritier</th>
+                    <th>Part (Fraction)</th>
+                    <th>Part (Pourcentage)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of result.heritiers">
+                    <td>{{ item.heritier }}</td>
+                    <td>{{ getFractionDisplay(item) }}</td>
+                    <td>
+                        <ng-container *ngIf="item.part && item.part.denominateur !== 0">
+                            {{ (item.part.numerateur / item.part.denominateur * 100) | number:'1.2-2' }}%
+                        </ng-container>
+                        <ng-container *ngIf="!item.part || item.part.denominateur === 0">N/A</ng-container>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div *ngIf="!result.heritiers || result.heritiers.length === 0" class="no-heirs">
+            Aucun héritier trouvé.
+        </div>
+
+        <!-- Debug Section -->
+        <details style="margin-top: 20px; background: #eee; padding: 10px; border-radius: 4px;">
+            <summary>Voir les données brutes (Debug)</summary>
+            <pre>{{ result | json }}</pre>
+        </details>
+    </div>
+</div>
