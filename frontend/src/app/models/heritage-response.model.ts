@@ -5,7 +5,9 @@ export interface Fraction {
 
 export interface Heritier {
     heritier: string; // Ensure this matches Java field name
+    baseCalcul?: string;
     part: Fraction;
+    partIrreductible?: Fraction;
 }
 
 export interface HeritageResponse {

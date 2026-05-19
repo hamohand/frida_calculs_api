@@ -60,8 +60,14 @@ export class FamilyFormComponent {
             },
             error: (err) => {
                 console.error('Erreur API:', err);
-                // Affiche l'erreur complète pour le débogage
-                this.error = `Erreur: ${err.status} - ${err.message}. Détails: ${JSON.stringify(err.error)}`;
+                // Sécurisation de l'affichage de l'erreur
+                let errorDetails = '';
+                try {
+                    errorDetails = (err.error && typeof err.error === 'object') ? JSON.stringify(err.error) : err.error;
+                } catch (e) {
+                    errorDetails = 'Erreur réseau ou objet non serialisable';
+                }
+                this.error = `Erreur: ${err.status} - ${err.message}. Détails: ${errorDetails}`;
                 this.loading = false;
                 this.cdr.detectChanges();
             }
@@ -71,6 +77,14 @@ export class FamilyFormComponent {
     getFractionDisplay(heritier: Heritier): string {
         if (!heritier || !heritier.part) return 'N/A';
         const { numerateur, denominateur } = heritier.part;
+        if (numerateur === 0) return '0';
+        if (numerateur === denominateur) return '1';
+        return `${numerateur}/${denominateur}`;
+    }
+
+    getIrreducibleFractionDisplay(heritier: Heritier): string {
+        if (!heritier || !heritier.partIrreductible) return 'N/A';
+        const { numerateur, denominateur } = heritier.partIrreductible;
         if (numerateur === 0) return '0';
         if (numerateur === denominateur) return '1';
         return `${numerateur}/${denominateur}`;

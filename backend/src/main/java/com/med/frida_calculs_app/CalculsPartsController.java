@@ -21,6 +21,7 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/api/v1/heritage")
 @RestController
+@CrossOrigin(origins = "*")
 @Tag(name = "Héritage", description = "API de calcul des parts d'héritage selon la loi islamique")
 public class CalculsPartsController {
 
@@ -34,8 +35,6 @@ public class CalculsPartsController {
         }
 
         @GetMapping("/calculs")
-        @CrossOrigin(origins = { "http://localhost:4200", "http://localhost:8080" }, methods = { RequestMethod.GET,
-                        RequestMethod.POST })
         @Tag(name = "Heritage", description = "API pour le calcul des parts d'héritage")
         public List<Heritier> calculParts(String sexe_defunt, boolean conjoint_vivant, boolean pere_vivant,
                         boolean mere_vivante, Integer nb_filles, Integer nb_garcons, Integer nb_soeurs,
@@ -57,7 +56,6 @@ public class CalculsPartsController {
         }
 
         @PostMapping("/calculate")
-        @CrossOrigin(origins = "http://localhost:4200")
         @Operation(summary = "Calculer les parts d'héritage", description = "Calcule les parts d'héritage selon la loi islamique à partir de la composition familiale")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Calcul effectué avec succès", content = @Content(schema = @Schema(implementation = HeritageResponse.class))),

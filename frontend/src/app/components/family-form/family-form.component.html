@@ -66,13 +66,17 @@
             <thead>
                 <tr>
                     <th>Héritier</th>
-                    <th>Part (Fraction)</th>
+                    <th>Base de Calcul</th>
+                    <th>Part (Irréductible)</th>
+                    <th>Part (Commune)</th>
                     <th>Part (Pourcentage)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let item of result.heritiers">
                     <td>{{ item.heritier }}</td>
+                    <td class="text-muted"><small>{{ item.baseCalcul || '-' }}</small></td>
+                    <td>{{ getIrreducibleFractionDisplay(item) }}</td>
                     <td>{{ getFractionDisplay(item) }}</td>
                     <td>
                         <ng-container *ngIf="item.part && item.part.denominateur !== 0">

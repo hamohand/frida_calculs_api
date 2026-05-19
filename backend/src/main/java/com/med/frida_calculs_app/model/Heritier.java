@@ -1,6 +1,7 @@
 package com.med.frida_calculs_app.model;
 
 import lombok.Data;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
 public class Heritier {
@@ -12,6 +13,8 @@ public class Heritier {
      * part : fraction représentant l'éventuelle part de l'héritage sinon 0.
      */
     private String heritier;
+    @Schema(description = "Base de la fraction (ex: de la totalité, du reste)")
+    private String baseCalcul;
     private Fraction part;
 
     public Heritier(String heritier, Fraction part) {
@@ -21,6 +24,7 @@ public class Heritier {
 
     public Heritier(com.med.frida_calculs_app.enums.HeirType type, Fraction part) {
         this.heritier = type.getLabel();
+        this.baseCalcul = type.getBaseCalcul();
         this.part = part;
     }
 
@@ -30,8 +34,18 @@ public class Heritier {
 
     public Heritier(com.med.frida_calculs_app.enums.HeirType type) {
         this.heritier = type.getLabel();
+        this.baseCalcul = type.getBaseCalcul();
     }
 
     public Heritier() {
+    }
+
+    @Schema(description = "Fraction irréductible représentant la part légale du type d'héritier")
+    public Fraction getPartIrreductible() {
+        if (this.part != null && this.part.getDenominateur() != 0) {
+            // Le constructeur de Fraction applique automatiquement la réduction (simplification)
+            return new Fraction(this.part.getNumerateur(), this.part.getDenominateur());
+        }
+        return null;
     }
 }
