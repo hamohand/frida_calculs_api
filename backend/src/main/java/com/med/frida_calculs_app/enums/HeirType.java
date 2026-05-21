@@ -11,6 +11,8 @@ public enum HeirType {
     SON("garçon", "du reste de l'héritage"),
     SISTER("soeur", "du reste de l'héritage"),
     BROTHER("frere", "du reste de l'héritage"),
+    PATERNAL_UNCLE("oncle paternel", "du reste de l'héritage"),
+    PATERNAL_COUSIN("cousin paternel", "du reste de l'héritage"),
     REMAINDER("part restant", "de la totalité de l'héritage (non distribuée)");
 
     private final String label;

@@ -16,16 +16,22 @@ public class Heritier {
     @Schema(description = "Base de la fraction (ex: de la totalité, du reste)")
     private String baseCalcul;
     private Fraction part;
+    @Schema(description = "Part légale théorique du type d'héritier")
+    private Fraction partLegale;
+    @Schema(description = "Cadre légal du partage en arabe (الفرض, العصبة, العول, الرد)")
+    private String cadreLegal;
 
     public Heritier(String heritier, Fraction part) {
         this.heritier = heritier;
         this.part = part;
+        this.partLegale = part;
     }
 
     public Heritier(com.med.frida_calculs_app.enums.HeirType type, Fraction part) {
         this.heritier = type.getLabel();
         this.baseCalcul = type.getBaseCalcul();
         this.part = part;
+        this.partLegale = part;
     }
 
     public Heritier(String heritier) {

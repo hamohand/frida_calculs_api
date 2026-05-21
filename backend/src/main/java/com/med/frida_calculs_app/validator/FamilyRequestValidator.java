@@ -34,6 +34,12 @@ public class FamilyRequestValidator {
         if (request.getNbFreres() == null) {
             request.setNbFreres(0);
         }
+        if (request.getNbOncles() == null) {
+            request.setNbOncles(0);
+        }
+        if (request.getNbCousins() == null) {
+            request.setNbCousins(0);
+        }
 
         // Validation 3: Cohérence logique - si des enfants existent, la fratrie ne
         // devrait pas hériter
@@ -56,7 +62,7 @@ public class FamilyRequestValidator {
         int totalHeritiers = (request.getNbConjoints() != null ? request.getNbConjoints() : 0) +
                 (request.isPereVivant() ? 1 : 0) +
                 (request.isMereVivante() ? 1 : 0) +
-                nbEnfants + nbFratrie;
+                nbEnfants + nbFratrie + request.getNbOncles() + request.getNbCousins();
 
         if (totalHeritiers > 100) {
             throw new InvalidFamilyCompositionException(

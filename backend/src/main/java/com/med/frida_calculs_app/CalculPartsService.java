@@ -3,251 +3,419 @@ package com.med.frida_calculs_app;
 import com.med.frida_calculs_app.enums.HeirType;
 import com.med.frida_calculs_app.model.Fraction;
 import com.med.frida_calculs_app.model.Heritier;
-import com.med.frida_calculs_app.model.Heritiers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.med.frida_calculs_app.model.Heritiers.*;
-
 @Service
 @Slf4j
-// @AllArgsConstructor @Data
 public class CalculPartsService {
-    // Très important : permet de garder la fraction de l'héritage restant à
-    // partager
-    // par les autres éventuels héritiers, au début la partRestant est entière
-    // (fraction = 1)
-    private final Fraction HERITAGE = new Fraction(1); // constante
 
     public List<Heritier> calculParts(com.med.frida_calculs_app.model.FamilyRequest request) {
-        // Extract values from request with defaults
         String sexe_defunt = request.getSexeDefunt();
         boolean conjoint_vivant = request.getNbConjoints() != null && request.getNbConjoints() > 0;
+        int nb_conjoints = request.getNbConjoints() != null ? request.getNbConjoints() : 0;
         boolean pere_vivant = request.isPereVivant();
         boolean mere_vivante = request.isMereVivante();
-        Integer nb_filles = request.getNbFilles() != null ? request.getNbFilles() : 0;
-        Integer nb_garcons = request.getNbGarcons() != null ? request.getNbGarcons() : 0;
-        Integer nb_soeurs = request.getNbSoeurs() != null ? request.getNbSoeurs() : 0;
-        Integer nb_freres = request.getNbFreres() != null ? request.getNbFreres() : 0;
+        int nb_filles = request.getNbFilles() != null ? request.getNbFilles() : 0;
+        int nb_garcons = request.getNbGarcons() != null ? request.getNbGarcons() : 0;
+        int nb_soeurs = request.getNbSoeurs() != null ? request.getNbSoeurs() : 0;
+        int nb_freres = request.getNbFreres() != null ? request.getNbFreres() : 0;
+        int nb_oncles = request.getNbOncles() != null ? request.getNbOncles() : 0;
+        int nb_cousins = request.getNbCousins() != null ? request.getNbCousins() : 0;
 
-        log.info("Paramètres traités : "
-                + "conjoint_vivant = " + conjoint_vivant + ", "
-                + "pere_vivant = " + pere_vivant + ", "
-                + "mere_vivante = " + mere_vivante + ", "
-                + "nb_filles = " + nb_filles + ", "
-                + "nb_garcons = " + nb_garcons + ", "
-                + "nb_soeurs = " + nb_soeurs + ", "
-                + "nb_freres = " + nb_freres);
+        log.info("Nouveau calcul fiable : conjoint={}, pere={}, mere={}, filles={}, garcons={}, soeurs={}, freres={}, oncles={}, cousins={}",
+                conjoint_vivant, pere_vivant, mere_vivante, nb_filles, nb_garcons, nb_soeurs, nb_freres, nb_oncles, nb_cousins);
 
-        // Liste des héritiers
-        List<Heritier> heritiersList = new ArrayList<>(); // Liste (heritier + part)
-        List<Fraction> fractionsList = new ArrayList<>();// // pour calculer le dénominateur commun
-        // Héritiers
-        Heritiers heritiers = new Heritiers();
+        // --- PHASE 1 : Règles d'exclusion (Hajb) ---
+        // Le père ou un fils excluent totalement les frères et sœurs
+        int active_freres = nb_freres;
+        int active_soeurs = nb_soeurs;
+        if (pere_vivant || nb_garcons > 0) {
+            active_freres = 0;
+            active_soeurs = 0;
+        }
 
-        // Initialisation : partRestant
-        // fraction de l'héritage non encore distribué (=HERITAGE au départ)
-        Fraction fractionRestant = HERITAGE;
-        log.info("Héritage part de départ : " + fractionRestant + "");
+        // Les oncles paternels sont exclus par le père, un garçon ou un frère
+        int active_oncles = nb_oncles;
+        if (pere_vivant || nb_garcons > 0 || nb_freres > 0) {
+            active_oncles = 0;
+        }
 
-        // ---------------------- Conjoint ----------------------
-        // conjoint
+        // Les cousins paternels sont exclus par le père, un garçon, un frère ou un oncle
+        int active_cousins = nb_cousins;
+        if (pere_vivant || nb_garcons > 0 || nb_freres > 0 || nb_oncles > 0) {
+            active_cousins = 0;
+        }
+
+        // --- PHASE 2 : Parts théoriques fixes (Fard) sur la totalité de l'héritage ---
+        Fraction f_conjoint = new Fraction(0);
+        Fraction f_mere = new Fraction(0);
+        Fraction f_pere = new Fraction(0);
+        Fraction f_filles = new Fraction(0);
+        Fraction f_soeurs = new Fraction(0);
+
+        // 1. Conjoint
         if (conjoint_vivant) {
-            heritiers.setConjoint(conjoint(sexe_defunt, nb_filles, nb_garcons)); // part conjoint
-            fractionRestant = fractionRestant.soustraire(heritiers.getConjoint().getPart()); // Fraction restant après
-                                                                                             // le conjoint
-            heritiersList.add(heritiers.getConjoint()); // ajouter à la liste des héritiers
-            fractionsList.add(heritiers.getConjoint().getPart()); // pour le calcul du même dénominateur
-            log.info("conjoint : " + heritiers.getConjoint().getPart() + " ");
-            log.info("restant après conjoint : " + fractionRestant + " ");
+            boolean has_descendants = (nb_filles > 0 || nb_garcons > 0);
+            if (has_descendants) {
+                f_conjoint = (sexe_defunt.equalsIgnoreCase("M") || sexe_defunt.equalsIgnoreCase("Masculin"))
+                        ? new Fraction(1, 8)
+                        : new Fraction(1, 4);
+            } else {
+                f_conjoint = (sexe_defunt.equalsIgnoreCase("M") || sexe_defunt.equalsIgnoreCase("Masculin"))
+                        ? new Fraction(1, 4)
+                        : new Fraction(1, 2);
+            }
         }
-        // ---------------------- Parents ----------------------
-        // Père
-        if (pere_vivant) {
-            heritiers.setPere(pere(conjoint_vivant, nb_filles, nb_garcons));
-            fractionRestant = fractionRestant.soustraire(heritiers.getPere().getPart());
-            heritiersList.add(heritiers.getPere());
-            fractionsList.add(heritiers.getPere().getPart());
-            log.info("pere : " + heritiers.getPere().getPart() + " ");
-            log.info("restant après père : " + fractionRestant + " ");
-        }
-        // Mère
-        if (mere_vivante) {
-            heritiers.setMere(mere(conjoint_vivant, nb_filles, nb_garcons, nb_soeurs, nb_freres));
-            fractionRestant = fractionRestant.soustraire(heritiers.getMere().getPart());
-            heritiersList.add(heritiers.getMere());
-            fractionsList.add(heritiers.getMere().getPart());
-            log.info("mere : " + heritiers.getMere().getPart() + " ");
-            log.info("restant après mère : " + fractionRestant + "");
-        }
-        // ---------------------- Enfants ----------------------
-        // Fille
-        if (nb_filles != 0) {
-            heritiers.setFille(fille(fractionRestant, nb_filles, nb_garcons));
-            fractionRestant = fractionRestant.soustraire((heritiers.getFille().getPart()).multiplier(nb_filles));
-            heritiersList.add(heritiers.getFille());
-            fractionsList.add(heritiers.getFille().getPart());
-            log.info("fille : " + heritiers.getFille().getPart() + " ");
-            log.info("restant après fille : " + fractionRestant + " ");
-        }
-        // Garçons
-        if (nb_garcons != 0) {
-            heritiers.setGarcon(garcon(fractionRestant, nb_filles, nb_garcons));
-            fractionRestant = fractionRestant.soustraire((heritiers.getGarcon().getPart()).multiplier(nb_garcons));
-            heritiersList.add(heritiers.getGarcon());
-            fractionsList.add(heritiers.getGarcon().getPart());
-            log.info("garcon : " + heritiers.getGarcon().getPart() + " ");
-            log.info("restant après garçon : " + fractionRestant + " ");
-        }
-        // ---------------------- Fraterie ----------------------
-        // Soeur
-        if (nb_soeurs != 0 && fractionRestant.getNumerateur() != 0) {
-            heritiers.setSoeur(soeur(fractionRestant, nb_soeurs, nb_freres));
-            fractionRestant = fractionRestant.soustraire((heritiers.getSoeur().getPart()).multiplier(nb_soeurs));
-            heritiersList.add(heritiers.getSoeur());
-            fractionsList.add(heritiers.getSoeur().getPart());
-            log.info("soeur : " + heritiers.getSoeur().getPart() + " ");
-            log.info("part restant après soeur : " + fractionRestant + " ");
-        }
-        // Frere
-        if (nb_freres != 0 && fractionRestant.getNumerateur() != 0) {
-            heritiers.setFrere(frere(fractionRestant, nb_freres));
-            fractionRestant = fractionRestant.soustraire((heritiers.getFrere().getPart()).multiplier(nb_freres));
-            heritiersList.add(heritiers.getFrere());
-            fractionsList.add(heritiers.getFrere().getPart());
-            log.info("frere : " + heritiers.getFrere().getPart() + " ");
-            log.info("part restant après frère : " + fractionRestant + " ");
-        }
-        // ---------------------- Part restant non distribuée ----------------------
-        // Part restant
-        heritiers.getPartRestant().setPart(fractionRestant);
-        heritiersList.add(heritiers.getPartRestant());
-        fractionsList.add(heritiers.getPartRestant().getPart());
-        log.info("Part restant non distribué à la fin : " + heritiers.getPartRestant().getPart() + " ");
 
-        // --------------------------------------------------------------
-        // Réduction au même dénominateur
+        // 2. Mère
+        if (mere_vivante) {
+            boolean has_descendants = (nb_filles > 0 || nb_garcons > 0);
+            boolean has_multiple_siblings = (active_freres + active_soeurs) >= 2;
+            if (has_descendants || has_multiple_siblings) {
+                f_mere = new Fraction(1, 6);
+            } else {
+                // Cas spécial Gharrawayn (Conjoint + Père + Mère sans descendants ni fratrie active)
+                if (conjoint_vivant && pere_vivant && (active_freres + active_soeurs) == 0) {
+                    if (f_conjoint.getNumerateur() == 1 && f_conjoint.getDenominateur() == 2) { // Époux
+                        f_mere = new Fraction(1, 6); // 1/3 du reste (1/2) = 1/6
+                    } else if (f_conjoint.getNumerateur() == 1 && f_conjoint.getDenominateur() == 4) { // Épouse
+                        f_mere = new Fraction(1, 4); // 1/3 du reste (3/4) = 1/4
+                    } else {
+                        f_mere = new Fraction(1, 3);
+                    }
+                } else {
+                    f_mere = new Fraction(1, 3);
+                }
+            }
+        }
+
+        // 3. Père
+        if (pere_vivant) {
+            boolean has_descendants = (nb_filles > 0 || nb_garcons > 0);
+            if (has_descendants) {
+                f_pere = new Fraction(1, 6); // Part fixe minimale
+            } else {
+                f_pere = new Fraction(0); // Purement Asaba, prend le reste
+            }
+        }
+
+        // 4. Filles (seulement s'il n'y a pas de garçon, sinon elles sont Asaba)
+        if (nb_filles > 0 && nb_garcons == 0) {
+            if (nb_filles == 1) {
+                f_filles = new Fraction(1, 2);
+            } else {
+                f_filles = new Fraction(2, 3);
+            }
+        }
+
+        // 5. Sœurs (seulement s'il n'y a pas de frère ni de descendant ni de père)
+        if (active_soeurs > 0 && active_freres == 0 && nb_filles == 0 && nb_garcons == 0) {
+            if (active_soeurs == 1) {
+                f_soeurs = new Fraction(1, 2);
+            } else {
+                f_soeurs = new Fraction(2, 3);
+            }
+        }
+
+        // --- PHASE 3 : Résolution mathématique (Somme des parts fixes) ---
+        Fraction sommeFixe = f_conjoint.ajouter(f_mere).ajouter(f_pere).ajouter(f_filles).ajouter(f_soeurs);
+
+        // Variables pour stocker les parts finales calculées
+        Fraction final_conjoint = f_conjoint;
+        Fraction final_mere = f_mere;
+        Fraction final_pere = f_pere;
+        Fraction final_fille = (nb_filles > 0 && nb_garcons == 0) ? f_filles.diviser(nb_filles) : null;
+        Fraction final_garcon = null;
+        Fraction final_soeur = (active_soeurs > 0 && active_freres == 0 && nb_filles == 0 && nb_garcons == 0)
+                ? f_soeurs.diviser(active_soeurs) : null;
+        Fraction final_frere = null;
+        Fraction final_oncle = null;
+        Fraction final_cousin = null;
+        Fraction final_part_restant = new Fraction(0);
+
+        // On met toutes les parts fixes initiales sous le même dénominateur pour tester le dépassement (Aoul)
+        List<Fraction> listFixed = new ArrayList<>();
+        listFixed.add(f_conjoint);
+        listFixed.add(f_mere);
+        listFixed.add(f_pere);
+        listFixed.add(f_filles);
+        listFixed.add(f_soeurs);
+
+        List<Fraction> listCommon = Fraction.reduireAuMemDenominateur(listFixed);
+        int commonDen = listCommon.get(0).getDenominateur();
+        int sumNum = 0;
+        for (Fraction f : listCommon) {
+            sumNum += f.getNumerateur();
+        }
+
+        if (sumNum > commonDen) {
+            // --- CAS A : AOUL (Somme des parts > 1) ---
+            // On augmente le dénominateur de tous les héritiers fixes
+            final_conjoint = new Fraction(listCommon.get(0).getNumerateur(), sumNum);
+            final_mere = new Fraction(listCommon.get(1).getNumerateur(), sumNum);
+            final_pere = new Fraction(listCommon.get(2).getNumerateur(), sumNum);
+            if (nb_filles > 0) {
+                final_fille = new Fraction(listCommon.get(3).getNumerateur(), sumNum).diviser(nb_filles);
+            }
+            if (active_soeurs > 0) {
+                final_soeur = new Fraction(listCommon.get(4).getNumerateur(), sumNum).diviser(active_soeurs);
+            }
+            // Les héritiers Asaba n'ont rien
+            if (nb_garcons > 0) {
+                final_garcon = new Fraction(0);
+                if (nb_filles > 0) final_fille = new Fraction(0);
+            }
+            if (active_freres > 0) {
+                final_frere = new Fraction(0);
+                if (active_soeurs > 0) final_soeur = new Fraction(0);
+            }
+            if (active_oncles > 0) {
+                final_oncle = new Fraction(0);
+            }
+            if (active_cousins > 0) {
+                final_cousin = new Fraction(0);
+            }
+        } else {
+            // --- CAS B : Reste <= 1 ---
+            Fraction residue = new Fraction(commonDen - sumNum, commonDen);
+
+            // Est-ce qu'il y a des héritiers Asaba en jeu ?
+            boolean has_asaba = false;
+            
+            // Priorité 1: Enfants (Garçon et Fille)
+            if (nb_garcons > 0) {
+                has_asaba = true;
+                int parts = (nb_garcons * 2) + nb_filles;
+                final_garcon = residue.multiplier(2).diviser(parts);
+                final_fille = residue.multiplier(1).diviser(parts);
+            }
+            // Priorité 2: Père
+            else if (pere_vivant) {
+                has_asaba = true;
+                final_pere = final_pere.ajouter(residue);
+            }
+            // Priorité 3: Fratrie
+            else if (active_freres > 0) {
+                has_asaba = true;
+                int parts = (active_freres * 2) + active_soeurs;
+                final_frere = residue.multiplier(2).diviser(parts);
+                final_soeur = residue.multiplier(1).diviser(parts);
+            }
+            // Priorité 4: Sœurs avec filles (العصبة مع الغير)
+            else if (nb_filles > 0 && active_soeurs > 0) {
+                has_asaba = true;
+                final_soeur = residue.diviser(active_soeurs);
+            }
+            // Priorité 5: Oncles Paternels
+            else if (active_oncles > 0) {
+                has_asaba = true;
+                final_oncle = residue.diviser(active_oncles);
+            }
+            // Priorité 6: Cousins Paternels
+            else if (active_cousins > 0) {
+                has_asaba = true;
+                final_cousin = residue.diviser(active_cousins);
+            }
+
+            if (!has_asaba && residue.getNumerateur() > 0) {
+                // --- CAS C : RADD (Surplus sans Asaba) ---
+                // Redistribuer aux héritiers fixes autres que le conjoint
+                Fraction sommeEligible = f_mere.ajouter(f_filles).ajouter(f_soeurs);
+                if (sommeEligible.getNumerateur() > 0) {
+                    Fraction multiplierFactor = new Fraction(1).soustraire(f_conjoint).diviser(sommeEligible);
+                    if (mere_vivante) {
+                        final_mere = f_mere.multiplier(multiplierFactor);
+                    }
+                    if (nb_filles > 0) {
+                        final_fille = f_filles.multiplier(multiplierFactor).diviser(nb_filles);
+                    }
+                    if (active_soeurs > 0) {
+                        final_soeur = f_soeurs.multiplier(multiplierFactor).diviser(active_soeurs);
+                    }
+                } else {
+                    // Seul le conjoint est présent (le reliquat reste non distribué)
+                    final_part_restant = residue;
+                }
+            }
+        }
+
+        // --- Détermination des cadres légaux en arabe ---
+        String cadre_conjoint = "";
+        String cadre_mere = "";
+        String cadre_pere = "";
+        String cadre_fille = "";
+        String cadre_garcon = "";
+        String cadre_soeur = "";
+        String cadre_frere = "";
+        String cadre_oncle = "";
+        String cadre_cousin = "";
+
+        if (sumNum > commonDen) {
+            // Cas de dépassement (Aoul)
+            cadre_conjoint = "العول (Aoul - Réduction)";
+            cadre_mere = "العول (Aoul - Réduction)";
+            cadre_pere = "العول (Aoul - Réduction)";
+            cadre_fille = "العول (Aoul - Réduction)";
+            cadre_soeur = "العول (Aoul - Réduction)";
+            cadre_garcon = "العصبة (Asaba - Résiduaire)";
+            cadre_frere = "العصبة (Asaba - Résiduaire)";
+            cadre_oncle = "العصبة (Asaba - Résiduaire)";
+            cadre_cousin = "العصبة (Asaba - Résiduaire)";
+        } else {
+            Fraction residue = new Fraction(commonDen - sumNum, commonDen);
+            boolean has_asaba = false;
+
+            if (nb_garcons > 0) {
+                has_asaba = true;
+                cadre_garcon = "العصبة (Asaba - Résiduaire)";
+                cadre_fille = "العصبة (Asaba - Résiduaire)";
+            } else if (pere_vivant) {
+                has_asaba = true;
+                if (nb_filles > 0) {
+                    cadre_pere = "الفرض والعصبة (Fard et Asaba)";
+                } else {
+                    cadre_pere = "العصبة (Asaba - Résiduaire)";
+                }
+            } else if (active_freres > 0) {
+                has_asaba = true;
+                cadre_frere = "العصبة (Asaba - Résiduaire)";
+                cadre_soeur = "العصبة (Asaba - Résiduaire)";
+            } else if (nb_filles > 0 && active_soeurs > 0) {
+                has_asaba = true;
+                cadre_soeur = "العصبة (Asaba - Résiduaire)";
+            } else if (active_oncles > 0) {
+                has_asaba = true;
+                cadre_oncle = "العصبة (Asaba - Résiduaire)";
+            } else if (active_cousins > 0) {
+                has_asaba = true;
+                cadre_cousin = "العصبة (Asaba - Résiduaire)";
+            }
+
+            boolean is_radd = !has_asaba && residue.getNumerateur() > 0;
+
+            if (conjoint_vivant) {
+                cadre_conjoint = "الفرض (Fard - Part fixe)";
+            }
+            if (mere_vivante) {
+                cadre_mere = is_radd ? "الفرض والرد (Fard et Radd)" : "الفرض (Fard - Part fixe)";
+            }
+            if (pere_vivant && cadre_pere.isEmpty()) {
+                cadre_pere = "الفرض (Fard - Part fixe)";
+            }
+            if (nb_filles > 0 && cadre_fille.isEmpty()) {
+                cadre_fille = is_radd ? "الفرض والرد (Fard et Radd)" : "الفرض (Fard - Part fixe)";
+            }
+            if (nb_soeurs > 0 && cadre_soeur.isEmpty()) {
+                if (active_soeurs == 0) {
+                    cadre_soeur = "محجوب (Exclu)";
+                } else {
+                    cadre_soeur = is_radd ? "الفرض والرد (Fard et Radd)" : "الفرض (Fard - Part fixe)";
+                }
+            }
+            if (nb_freres > 0 && cadre_frere.isEmpty()) {
+                if (active_freres == 0) {
+                    cadre_frere = "محجوب (Exclu)";
+                } else {
+                    cadre_frere = "العصبة (Asaba - Résiduaire)";
+                }
+            }
+            if (nb_oncles > 0 && cadre_oncle.isEmpty()) {
+                if (active_oncles == 0) {
+                    cadre_oncle = "محجوب (Exclu)";
+                } else {
+                    cadre_oncle = "العصبة (Asaba - Résiduaire)";
+                }
+            }
+            if (nb_cousins > 0 && cadre_cousin.isEmpty()) {
+                if (active_cousins == 0) {
+                    cadre_cousin = "محجوب (Exclu)";
+                } else {
+                    cadre_cousin = "العصبة (Asaba - Résiduaire)";
+                }
+            }
+        }
+
+        // --- PHASE 4 : Construction de la liste finale des héritiers ---
+        List<Heritier> heritiersList = new ArrayList<>();
+        List<Fraction> fractionsList = new ArrayList<>();
+
+        if (conjoint_vivant) {
+            Heritier h = new Heritier(HeirType.SPOUSE, final_conjoint);
+            h.setCadreLegal(cadre_conjoint);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (pere_vivant) {
+            Heritier h = new Heritier(HeirType.FATHER, final_pere != null ? final_pere : new Fraction(0));
+            h.setCadreLegal(cadre_pere);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (mere_vivante) {
+            Heritier h = new Heritier(HeirType.MOTHER, final_mere != null ? final_mere : new Fraction(0));
+            h.setCadreLegal(cadre_mere);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (nb_filles > 0) {
+            Heritier h = new Heritier(HeirType.DAUGHTER, final_fille != null ? final_fille : new Fraction(0));
+            h.setCadreLegal(cadre_fille);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (nb_garcons > 0) {
+            Heritier h = new Heritier(HeirType.SON, final_garcon != null ? final_garcon : new Fraction(0));
+            h.setCadreLegal(cadre_garcon);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (nb_soeurs > 0) {
+            Heritier h = new Heritier(HeirType.SISTER, final_soeur != null ? final_soeur : new Fraction(0));
+            h.setCadreLegal(cadre_soeur);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (nb_freres > 0) {
+            Heritier h = new Heritier(HeirType.BROTHER, final_frere != null ? final_frere : new Fraction(0));
+            h.setCadreLegal(cadre_frere);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (nb_oncles > 0) {
+            Heritier h = new Heritier(HeirType.PATERNAL_UNCLE, final_oncle != null ? final_oncle : new Fraction(0));
+            h.setCadreLegal(cadre_oncle);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (nb_cousins > 0) {
+            Heritier h = new Heritier(HeirType.PATERNAL_COUSIN, final_cousin != null ? final_cousin : new Fraction(0));
+            h.setCadreLegal(cadre_cousin);
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+
+        // Part restante
+        Heritier h_rest = new Heritier(HeirType.REMAINDER, final_part_restant);
+        heritiersList.add(h_rest);
+        fractionsList.add(h_rest.getPart());
+
+        // Enregistrer la part légale d'origine (Fraction irréductible)
+        for (Heritier h : heritiersList) {
+            if (h.getPart() != null) {
+                h.setPartLegale(new Fraction(h.getPart().getNumerateur(), h.getPart().getDenominateur()));
+            }
+        }
+
+        // Réduction globale au même dénominateur
         List<Fraction> fractionListMemeDenominateur = Fraction.reduireAuMemDenominateur(fractionsList);
-        log.info("fractionListMemeDenominateur : " + fractionListMemeDenominateur);
-        // parts au même dénominateur
         for (int i = 0; i < heritiersList.size(); i++) {
             heritiersList.get(i).setPart(fractionListMemeDenominateur.get(i));
         }
+
         return heritiersList;
     }
-
-    // -------------------------------------------------
-    /*
-     * // les attributs
-     * private final int nbFilles;
-     * private final int nbGarcons;
-     * private final int nbConjoints;
-     * 
-     * // la loi dit : constantes
-     * private final int NUMERATEUR_CONJOINT = 1;
-     * private final int NUMERATEUR_ENFANTS = 7;
-     * private final int DENOMINATEUR = 8;
-     * private final int COEF_F = 1;
-     * private final int COEF_M = 2;
-     * 
-     * //les variables : initialisations
-     * private int numerateurEnfants = NUMERATEUR_ENFANTS; //
-     * private int numerateurConjoint = NUMERATEUR_CONJOINT; // pas de conjoint
-     * private int numerateurFille = 0; // pas de filles
-     * private int numerateurGarcon = 0; // pas de garçons
-     * private int denominateur = DENOMINATEUR; //
-     * private int coefFilles = COEF_F;
-     * private int coefGarcons = COEF_M;
-     * 
-     * //constructeur
-     * public CalculPartsService2(int nbFilles, int nbGarcons, int nbConjoints) {
-     * this.nbFilles = nbFilles;
-     * this.nbGarcons = nbGarcons;
-     * this.nbConjoints = nbConjoints;
-     * }
-     * 
-     * public Map<String, Integer> getFractions() {
-     * return fractions;
-     * }
-     * 
-     * //fractions
-     * private Map<String, Integer> fractions = new HashMap<>();
-     * 
-     * public void calculPartsEnfants() {
-     * fractions.put("nbGarcons", nbGarcons);
-     * fractions.put("nbFilles", nbFilles);
-     * fractions.put("nbConjoints", nbConjoints);
-     * 
-     * //Nombre total de parts des enfant : fille= 1 part, garçon= 2 parts
-     * int nbTotalPartsEnfants = (nbGarcons *2) + nbFilles;
-     * if(nbFilles == 0) { // pas de filles
-     * nbTotalPartsEnfants = nbGarcons;
-     * coefGarcons = 1;
-     * }
-     * 
-     * // Existence du conjoint ?
-     * if(nbConjoints == 0) { // pas de conjoint
-     * numerateurConjoint = 0;
-     * numerateurEnfants = 1;
-     * denominateur = 1;
-     * } else {
-     * if (Math.floorMod(nbTotalPartsEnfants, numerateurEnfants) == 0) { // si
-     * multiple de 7
-     * nbTotalPartsEnfants = Math.floorDiv(nbTotalPartsEnfants, numerateurEnfants);
-     * numerateurEnfants = 1;
-     * }
-     * if (nbTotalPartsEnfants != 0){ //conjoint + enfants
-     * numerateurConjoint = nbTotalPartsEnfants;
-     * } else { // conjoint mais pas d'enfants
-     * numerateurConjoint = 1;
-     * }
-     * 
-     * }
-     * 
-     * // Fraction ****
-     * //numérateur
-     * if(nbFilles != 0) {
-     * numerateurFille = numerateurEnfants * coefFilles;
-     * }
-     * if(nbGarcons != 0) {
-     * numerateurGarcon = numerateurEnfants * coefGarcons;
-     * }
-     * 
-     * //dénominateur différent de zéro
-     * if (nbTotalPartsEnfants == 0 && nbConjoints==0 ){ // pas d'enfants
-     * denominateur = -1;
-     * } else if (nbTotalPartsEnfants != 0){
-     * denominateur = nbTotalPartsEnfants * denominateur;
-     * }
-     * 
-     * //
-     * fractions.put("numerateurFille", numerateurFille);
-     * fractions.put("numerateurGarcon", numerateurGarcon);
-     * fractions.put("numerateurConjoint", numerateurConjoint);
-     * fractions.put("denominateur", denominateur);
-     * 
-     * log.info("nbConjoints" + nbConjoints);
-     * 
-     * log.info("nbFilles : " + nbFilles);
-     * log.info("nbGarcons : " + nbGarcons);
-     * log.info("nbTotalPartsEnfants : " + nbTotalPartsEnfants);
-     * 
-     * log.info("fraction fille: " +
-     * fractions.get("numerateurFille")+"/"+fractions.get("denominateur"));
-     * log.info("fraction garcon: " +
-     * fractions.get("numerateurGarcon")+"/"+fractions.get("denominateur"));
-     * log.info("fraction conjoint: " +
-     * fractions.get("numerateurConjoint")+"/"+fractions.get("denominateur"));
-     * 
-     * // Parts : facteur multiplicatif = nombre réel pour les futurs calculs des
-     * parts d'un bien (somme d'argent par exemple)
-     * float partFille = (float) numerateurFille / denominateur;
-     * float partGarcon = (float) numerateurGarcon / denominateur;
-     * float conjoint = (float) numerateurConjoint / denominateur;
-     * }
-     */
-
 }

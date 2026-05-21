@@ -75,6 +75,12 @@ public class HeritageResponse {
 
                 @Schema(description = "Nombre de frères", example = "0")
                 private int nbFreres;
+
+                @Schema(description = "Nombre d'oncles", example = "0")
+                private int nbOncles;
+
+                @Schema(description = "Nombre de cousins", example = "0")
+                private int nbCousins;
         }
 
         /**
@@ -126,6 +132,8 @@ public class HeritageResponse {
                                                 .nbGarcons(request.getNbGarcons() != null ? request.getNbGarcons() : 0)
                                                 .nbSoeurs(request.getNbSoeurs() != null ? request.getNbSoeurs() : 0)
                                                 .nbFreres(request.getNbFreres() != null ? request.getNbFreres() : 0)
+                                                .nbOncles(request.getNbOncles() != null ? request.getNbOncles() : 0)
+                                                .nbCousins(request.getNbCousins() != null ? request.getNbCousins() : 0)
                                                 .build())
                                 .build();
         }

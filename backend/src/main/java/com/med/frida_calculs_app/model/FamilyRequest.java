@@ -51,6 +51,16 @@ public class FamilyRequest {
     @Schema(description = "Nombre de frères", example = "0", defaultValue = "0", minimum = "0", maximum = "50")
     private Integer nbFreres;
 
+    @Min(value = 0, message = "Le nombre d'oncles ne peut pas être négatif")
+    @Max(value = 50, message = "Le nombre d'oncles ne peut pas dépasser 50")
+    @Schema(description = "Nombre d'oncles paternels", example = "0", defaultValue = "0", minimum = "0", maximum = "50")
+    private Integer nbOncles;
+
+    @Min(value = 0, message = "Le nombre de cousins ne peut pas être négatif")
+    @Max(value = 50, message = "Le nombre de cousins ne peut pas dépasser 50")
+    @Schema(description = "Nombre de cousins paternels", example = "0", defaultValue = "0", minimum = "0", maximum = "50")
+    private Integer nbCousins;
+
     /**
      * Validation métier : au moins un héritier doit être présent
      */
@@ -59,7 +69,9 @@ public class FamilyRequest {
                 (nbFilles != null && nbFilles > 0) ||
                 (nbGarcons != null && nbGarcons > 0) ||
                 (nbSoeurs != null && nbSoeurs > 0) ||
-                (nbFreres != null && nbFreres > 0);
+                (nbFreres != null && nbFreres > 0) ||
+                (nbOncles != null && nbOncles > 0) ||
+                (nbCousins != null && nbCousins > 0);
     }
 
     /**
