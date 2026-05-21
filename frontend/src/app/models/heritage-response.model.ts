@@ -8,6 +8,8 @@ export interface Heritier {
     baseCalcul?: string;
     part: Fraction;
     partIrreductible?: Fraction;
+    partLegale?: Fraction;
+    cadreLegal?: string;
 }
 
 export interface HeritageResponse {

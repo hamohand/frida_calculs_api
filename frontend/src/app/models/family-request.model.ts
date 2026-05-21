@@ -7,4 +7,6 @@ export interface FamilyRequest {
     nbGarcons: number;
     nbSoeurs: number;
     nbFreres: number;
+    nbOncles: number;
+    nbCousins: number;
 }

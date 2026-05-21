@@ -22,7 +22,9 @@ export class FamilyFormComponent {
         nbFilles: 0,
         nbGarcons: 0,
         nbSoeurs: 0,
-        nbFreres: 0
+        nbFreres: 0,
+        nbOncles: 0,
+        nbCousins: 0
     };
 
     result: HeritageResponse | null = null;
@@ -30,6 +32,34 @@ export class FamilyFormComponent {
     loading: boolean = false;
 
     constructor(private calculationService: CalculationService, private cdr: ChangeDetectorRef) { }
+
+    isSiblingsExcluded(): boolean {
+        return !!this.request.pereVivant || (this.request.nbGarcons !== null && this.request.nbGarcons > 0);
+    }
+
+    isOnclesExcluded(): boolean {
+        return !!this.request.pereVivant || 
+               (this.request.nbGarcons !== null && this.request.nbGarcons > 0) ||
+               (this.request.nbFreres !== null && this.request.nbFreres > 0);
+    }
+
+    isCousinsExcluded(): boolean {
+        return this.isOnclesExcluded() || 
+               (this.request.nbOncles !== null && this.request.nbOncles > 0);
+    }
+
+    checkExclusions() {
+        if (this.isSiblingsExcluded()) {
+            this.request.nbSoeurs = 0;
+            this.request.nbFreres = 0;
+        }
+        if (this.isOnclesExcluded()) {
+            this.request.nbOncles = 0;
+        }
+        if (this.isCousinsExcluded()) {
+            this.request.nbCousins = 0;
+        }
+    }
 
     onSubmit() {
         this.loading = true;
@@ -42,6 +72,8 @@ export class FamilyFormComponent {
         this.request.nbGarcons = Number(this.request.nbGarcons);
         this.request.nbSoeurs = Number(this.request.nbSoeurs);
         this.request.nbFreres = Number(this.request.nbFreres);
+        this.request.nbOncles = Number(this.request.nbOncles);
+        this.request.nbCousins = Number(this.request.nbCousins);
 
         console.log('Envoi de la demande:', this.request);
 
@@ -88,5 +120,78 @@ export class FamilyFormComponent {
         if (numerateur === 0) return '0';
         if (numerateur === denominateur) return '1';
         return `${numerateur}/${denominateur}`;
+    }
+
+    getLegalFractionDisplay(heritier: Heritier): string {
+        if (!heritier || !heritier.partLegale) return 'N/A';
+        const { numerateur, denominateur } = heritier.partLegale;
+        if (numerateur === 0) return '0';
+        if (numerateur === denominateur) return '1';
+        return `${numerateur}/${denominateur}`;
+    }
+
+    hasChildren(): boolean {
+        if (!this.result || !this.result.composition) return false;
+        const nbFilles = this.result.composition.nbFilles || 0;
+        const nbGarcons = this.result.composition.nbGarcons || 0;
+        return nbFilles > 0 || nbGarcons > 0;
+    }
+
+    getChildrenLabel(): string {
+        if (!this.result || !this.result.composition) return 'Enfants';
+        const nbFilles = this.result.composition.nbFilles || 0;
+        const nbGarcons = this.result.composition.nbGarcons || 0;
+        if (nbFilles > 0 && nbGarcons > 0) {
+            return `Enfants (${nbGarcons} garçon(s) et ${nbFilles} fille(s))`;
+        } else if (nbGarcons > 0) {
+            return `Enfants (${nbGarcons} garçon(s))`;
+        } else if (nbFilles > 0) {
+            return `Enfants (${nbFilles} fille(s))`;
+        }
+        return 'Enfants';
+    }
+
+    getChildrenLegalShare(): string {
+        if (!this.result || !this.result.composition) return '-';
+        const nbFilles = this.result.composition.nbFilles || 0;
+        const nbGarcons = this.result.composition.nbGarcons || 0;
+        if (nbGarcons > 0 && nbFilles > 0) {
+            return 'Reste (Asaba) - Ratio 2:1 (le double pour le garçon)';
+        } else if (nbGarcons > 0) {
+            return 'Reste (Asaba)';
+        } else if (nbFilles > 0) {
+            return nbFilles === 1 ? '1/2' : '2/3 (à partager)';
+        }
+        return '-';
+    }
+
+    getChildrenBaseCalcul(): string {
+        if (!this.result || !this.result.composition) return '-';
+        const nbFilles = this.result.composition.nbFilles || 0;
+        const nbGarcons = this.result.composition.nbGarcons || 0;
+        if (nbGarcons > 0) {
+            return "du reste de l'héritage";
+        } else if (nbFilles > 0) {
+            return "de la totalité de l'héritage";
+        }
+        return '-';
+    }
+
+    getChildrenCadreLegal(): string {
+        if (!this.result || !this.result.heritiers) return '-';
+        
+        // Trouver d'abord si le garçon est présent
+        const garcon = this.result.heritiers.find(h => h.heritier === 'garçon');
+        if (garcon) {
+            return garcon.cadreLegal || 'العصبة';
+        }
+        
+        // Sinon la fille
+        const fille = this.result.heritiers.find(h => h.heritier === 'fille');
+        if (fille) {
+            return fille.cadreLegal || 'الفرض';
+        }
+        
+        return '-';
     }
 }
