@@ -3,6 +3,7 @@ export interface FamilyRequest {
     nbConjoints: number;
     pereVivant: boolean;
     mereVivante: boolean;
+    grandPerePaternelVivant: boolean;
     nbFilles: number;
     nbGarcons: number;
     nbSoeurs: number;

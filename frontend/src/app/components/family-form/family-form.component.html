@@ -22,9 +22,10 @@
         </div>
 
         <div class="form-group checkbox-group">
-            <label> Parents vivants </label>
-            <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant" (change)="checkExclusions()"> Père</label>
+            <label> Parents & Ascendants vivants </label>
+            <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant" [disabled]="request.grandPerePaternelVivant" (change)="checkExclusions()"> Père</label>
             <label><input type="checkbox" name="mereVivante" [(ngModel)]="request.mereVivante"> Mère</label>
+            <label><input type="checkbox" name="grandPerePaternelVivant" [(ngModel)]="request.grandPerePaternelVivant" [disabled]="request.pereVivant" (change)="checkExclusions()"> Grand-père paternel</label>
         </div>
 
         <div class="form-grid">
@@ -39,22 +40,22 @@
             <div class="form-group">
                 <label [class.disabled-label]="isSiblingsExcluded()">Soeurs</label>
                 <input type="number" name="nbSoeurs" [(ngModel)]="request.nbSoeurs" min="0" [disabled]="isSiblingsExcluded()">
-                <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père ou un garçon</small>
+                <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
             </div>
             <div class="form-group">
                 <label [class.disabled-label]="isSiblingsExcluded()">Frères</label>
                 <input type="number" name="nbFreres" [(ngModel)]="request.nbFreres" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="checkExclusions()">
-                <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père ou un garçon</small>
+                <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
             </div>
             <div class="form-group">
                 <label [class.disabled-label]="isOnclesExcluded()">Oncles Paternels</label>
                 <input type="number" name="nbOncles" [(ngModel)]="request.nbOncles" min="0" [disabled]="isOnclesExcluded()" (ngModelChange)="checkExclusions()">
-                <small *ngIf="isOnclesExcluded()" class="exclusion-note">Exclu par le père, garçon ou frère</small>
+                <small *ngIf="isOnclesExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon ou frère</small>
             </div>
             <div class="form-group">
                 <label [class.disabled-label]="isCousinsExcluded()">Cousins Paternels</label>
                 <input type="number" name="nbCousins" [(ngModel)]="request.nbCousins" min="0" [disabled]="isCousinsExcluded()">
-                <small *ngIf="isCousinsExcluded()" class="exclusion-note">Exclu par père, garçon, frère ou oncle</small>
+                <small *ngIf="isCousinsExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon, frère ou oncle</small>
             </div>
         </div>
 

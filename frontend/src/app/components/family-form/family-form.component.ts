@@ -19,6 +19,7 @@ export class FamilyFormComponent {
         nbConjoints: 0,
         pereVivant: false,
         mereVivante: false,
+        grandPerePaternelVivant: false,
         nbFilles: 0,
         nbGarcons: 0,
         nbSoeurs: 0,
@@ -34,11 +35,14 @@ export class FamilyFormComponent {
     constructor(private calculationService: CalculationService, private cdr: ChangeDetectorRef) { }
 
     isSiblingsExcluded(): boolean {
-        return !!this.request.pereVivant || (this.request.nbGarcons !== null && this.request.nbGarcons > 0);
+        return !!this.request.pereVivant || 
+               !!this.request.grandPerePaternelVivant || 
+               (this.request.nbGarcons !== null && this.request.nbGarcons > 0);
     }
 
     isOnclesExcluded(): boolean {
         return !!this.request.pereVivant || 
+               !!this.request.grandPerePaternelVivant ||
                (this.request.nbGarcons !== null && this.request.nbGarcons > 0) ||
                (this.request.nbFreres !== null && this.request.nbFreres > 0);
     }
@@ -49,6 +53,9 @@ export class FamilyFormComponent {
     }
 
     checkExclusions() {
+        if (this.request.pereVivant) {
+            this.request.grandPerePaternelVivant = false;
+        }
         if (this.isSiblingsExcluded()) {
             this.request.nbSoeurs = 0;
             this.request.nbFreres = 0;
