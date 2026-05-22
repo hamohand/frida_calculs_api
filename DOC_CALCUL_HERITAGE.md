@@ -37,7 +37,8 @@ graph TD
 ### Étape 1 : Les Règles d'Exclusion (*Hajb*)
 
 Certains héritiers font écran à d'autres. Dans le périmètre de notre modèle :
-*   **Le Père** exclut totalement les frères, les sœurs, les oncles paternels et les cousins paternels.
+*   **Le Père** exclut totalement le grand-père paternel, les frères, les sœurs, les oncles paternels et les cousins paternels.
+*   **Le Grand-père paternel** (si le père n'est pas vivant) exclut totalement les frères, les sœurs, les oncles paternels et les cousins paternels.
 *   **Le Fils (Garçon)** exclut totalement les frères, les sœurs, les oncles paternels et les cousins paternels.
 *   **Le Frère** exclut totalement les oncles paternels et les cousins paternels.
 *   **L'Oncle Paternel** exclut totalement les cousins paternels.
@@ -68,6 +69,10 @@ Les parts de base sont calculées sur la totalité de la succession :
         *   Avec l'Épouse (1/4) : La mère reçoit $1/3 \times (1 - 1/4) = 1/4$. Le père prend le reste ($1/2$).
 
 #### C. Père
+*   **1/6** (part fixe minimale) s'il y a des enfants.
+*   **0** en part fixe s'il n'y a pas d'enfants (il intervient uniquement comme résiduaire *Asaba*).
+
+#### C bis. Grand-père paternel (en l'absence du père)
 *   **1/6** (part fixe minimale) s'il y a des enfants.
 *   **0** en part fixe s'il n'y a pas d'enfants (il intervient uniquement comme résiduaire *Asaba*).
 
@@ -109,7 +114,9 @@ S'il reste un résidu après distribution des parts fixes ($Sum < 1$), il est at
     *   Les garçons et filles partagent le reste avec la règle : **un garçon reçoit le double d'une fille** (ratio 2:1).
 2.  **Le Père** (si aucun garçon) :
     *   Il prend l'intégralité du résidu (en plus de son $1/6$ s'il y avait des filles).
-3.  **La Fratrie** (si pas de père ni de garçons, et présence de frères) :
+2 bis. **Le Grand-père paternel** (si aucun père ni garçon) :
+    *   Il prend l'intégralité du résidu (en plus de son $1/6$ s'il y avait des filles).
+3.  **La Fratrie** (si pas de père, de grand-père ni de garçons, et présence de frères) :
     *   Les frères et sœurs partagent le reste avec le ratio 2:1.
 4.  **Les Sœurs avec Filles** (*Asaba ma'al Ghayr*) :
     *   En présence de filles et de sœurs (sans garçons, père ou frères), les sœurs héritent du résidu équitablement.
