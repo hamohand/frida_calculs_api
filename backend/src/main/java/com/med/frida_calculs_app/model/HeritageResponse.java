@@ -64,6 +64,9 @@ public class HeritageResponse {
                 @Schema(description = "Présence de la mère", example = "false")
                 private boolean mereVivante;
 
+                @Schema(description = "Présence du grand-père paternel", example = "false")
+                private boolean grandPerePaternelVivant;
+
                 @Schema(description = "Nombre de filles", example = "1")
                 private int nbFilles;
 
@@ -127,6 +130,7 @@ public class HeritageResponse {
                                                 .nbConjoints(request.getNbConjoints() != null ? request.getNbConjoints()
                                                                 : 0)
                                                 .pereVivant(request.isPereVivant())
+                                                .grandPerePaternelVivant(request.isGrandPerePaternelVivant())
                                                 .mereVivante(request.isMereVivante())
                                                 .nbFilles(request.getNbFilles() != null ? request.getNbFilles() : 0)
                                                 .nbGarcons(request.getNbGarcons() != null ? request.getNbGarcons() : 0)

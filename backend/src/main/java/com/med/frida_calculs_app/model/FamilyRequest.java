@@ -31,6 +31,9 @@ public class FamilyRequest {
     @Schema(description = "La mère est-elle vivante?", example = "false", defaultValue = "false")
     private boolean mereVivante;
 
+    @Schema(description = "Le grand-père paternel est-il vivant?", example = "false", defaultValue = "false")
+    private boolean grandPerePaternelVivant;
+
     @Min(value = 0, message = "Le nombre de filles ne peut pas être négatif")
     @Max(value = 50, message = "Le nombre de filles ne peut pas dépasser 50")
     @Schema(description = "Nombre de filles", example = "1", defaultValue = "0", minimum = "0", maximum = "50")
@@ -65,7 +68,7 @@ public class FamilyRequest {
      * Validation métier : au moins un héritier doit être présent
      */
     public boolean hasAtLeastOneHeir() {
-        return (nbConjoints != null && nbConjoints > 0) || pereVivant || mereVivante ||
+        return (nbConjoints != null && nbConjoints > 0) || pereVivant || mereVivante || grandPerePaternelVivant ||
                 (nbFilles != null && nbFilles > 0) ||
                 (nbGarcons != null && nbGarcons > 0) ||
                 (nbSoeurs != null && nbSoeurs > 0) ||

@@ -21,6 +21,12 @@ public class FamilyRequestValidator {
                     "Aucun héritier n'a été spécifié. Au moins un héritier doit être présent.");
         }
 
+        // Validation 1 bis: Père et grand-père paternel ne peuvent pas être vivants en même temps
+        if (request.isPereVivant() && request.isGrandPerePaternelVivant()) {
+            throw new InvalidFamilyCompositionException(
+                    "Le père et le grand-père paternel ne peuvent pas être vivants en même temps.");
+        }
+
         // Validation 2: Valeurs par défaut pour null
         if (request.getNbFilles() == null) {
             request.setNbFilles(0);
@@ -62,6 +68,7 @@ public class FamilyRequestValidator {
         int totalHeritiers = (request.getNbConjoints() != null ? request.getNbConjoints() : 0) +
                 (request.isPereVivant() ? 1 : 0) +
                 (request.isMereVivante() ? 1 : 0) +
+                (request.isGrandPerePaternelVivant() ? 1 : 0) +
                 nbEnfants + nbFratrie + request.getNbOncles() + request.getNbCousins();
 
         if (totalHeritiers > 100) {
