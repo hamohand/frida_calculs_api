@@ -535,5 +535,32 @@ class CalculPartsServiceTest {
                 assertEquals("محجوب (Exclu)", oncle.getCadreLegal());
                 assertEquals("محجوب (Exclu)", cousin.getCadreLegal());
         }
+
+        @Test
+        @DisplayName("Calcul avec plusieurs conjoints (épouses) - Part partagée")
+        void testCalculWithMultipleSpouses() {
+                // Given: 2 Épouses, pas d'enfants, pas de parents.
+                // La part collective est 1/4. Divisée par 2, chaque épouse reçoit 1/8.
+                FamilyRequest request = FamilyRequest.builder()
+                                .sexeDefunt("M")
+                                .nbConjoints(2)
+                                .pereVivant(false)
+                                .mereVivante(false)
+                                .nbFilles(0)
+                                .nbGarcons(0)
+                                .nbSoeurs(0)
+                                .nbFreres(0)
+                                .build();
+
+                // When
+                List<Heritier> result = service.calculParts(request);
+
+                // Then
+                assertNotNull(result);
+                Heritier conjoint = result.stream().filter(h -> "conjoint".equals(h.getHeritier())).findFirst().orElse(null);
+                assertNotNull(conjoint);
+                assertEquals(1, conjoint.getPart().getNumerateur());
+                assertEquals(8, conjoint.getPart().getDenominateur()); // 1/4 divisé par 2 = 1/8
+        }
 }
 

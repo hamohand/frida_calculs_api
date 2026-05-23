@@ -209,4 +209,59 @@ class CalculsPartsControllerIntegrationTest {
                                 .andExpect(jsonPath("$.heritiers[0].part.denominateur").isNumber())
                                 .andExpect(jsonPath("$.heritiers[1].part.denominateur").isNumber());
         }
+
+        @Test
+        @DisplayName("POST /calculate avec plusieurs conjoints valides pour homme")
+        void testCalculateWithMultipleSpouses_MaleDeceased_Success() throws Exception {
+                // Given: Homme défunt avec 2 épouses (valide, max 4)
+                FamilyRequest request = FamilyRequest.builder()
+                                .sexeDefunt("M")
+                                .nbConjoints(2)
+                                .pereVivant(true)
+                                .build();
+
+                // When & Then
+                mockMvc.perform(post("/api/v1/heritage/calculate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.composition.nbConjoints").value(2));
+        }
+
+        @Test
+        @DisplayName("POST /calculate avec plusieurs conjoints invalides pour femme")
+        void testCalculateWithMultipleSpouses_FemaleDeceased_BadRequest() throws Exception {
+                // Given: Femme défunte avec 2 conjoints (invalide)
+                FamilyRequest request = FamilyRequest.builder()
+                                .sexeDefunt("F")
+                                .nbConjoints(2)
+                                .pereVivant(true)
+                                .build();
+
+                // When & Then
+                mockMvc.perform(post("/api/v1/heritage/calculate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andDo(print())
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("POST /calculate avec trop de conjoints pour homme")
+        void testCalculateWithTooManySpouses_MaleDeceased_BadRequest() throws Exception {
+                // Given: Homme défunt avec 5 conjoints (max est 4)
+                FamilyRequest request = FamilyRequest.builder()
+                                .sexeDefunt("M")
+                                .nbConjoints(5)
+                                .pereVivant(true)
+                                .build();
+
+                // When & Then
+                mockMvc.perform(post("/api/v1/heritage/calculate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andDo(print())
+                                .andExpect(status().isBadRequest());
+        }
 }

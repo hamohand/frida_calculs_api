@@ -21,8 +21,8 @@ public class FamilyRequest {
     private String sexeDefunt;
 
     @Min(value = 0, message = "Le nombre de conjoints ne peut pas être négatif")
-    @Max(value = 1, message = "Le nombre de conjoints ne peut pas dépasser 1 (pour le moment)")
-    @Schema(description = "Nombre de conjoints vivants (0 ou 1)", example = "1", defaultValue = "0", minimum = "0", maximum = "1")
+    @Max(value = 4, message = "Le nombre de conjoints ne peut pas dépasser 4")
+    @Schema(description = "Nombre de conjoints vivants (de 0 à 4)", example = "1", defaultValue = "0", minimum = "0", maximum = "4")
     private Integer nbConjoints;
 
     @Schema(description = "Le père est-il vivant?", example = "false", defaultValue = "false")

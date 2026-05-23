@@ -379,7 +379,7 @@ public class CalculPartsService {
         List<Fraction> fractionsList = new ArrayList<>();
 
         if (conjoint_vivant) {
-            Heritier h = new Heritier(HeirType.SPOUSE, final_conjoint);
+            Heritier h = new Heritier(HeirType.SPOUSE, final_conjoint.diviser(nb_conjoints));
             h.setCadreLegal(cadre_conjoint);
             heritiersList.add(h);
             fractionsList.add(h.getPart());

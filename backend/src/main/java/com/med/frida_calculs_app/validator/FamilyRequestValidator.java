@@ -27,6 +27,12 @@ public class FamilyRequestValidator {
                     "Le père et le grand-père paternel ne peuvent pas être vivants en même temps.");
         }
 
+        // Validation 1 ter: Une femme défunte ne peut pas avoir plus d'un conjoint
+        if ("F".equalsIgnoreCase(request.getSexeDefunt()) && request.getNbConjoints() != null && request.getNbConjoints() > 1) {
+            throw new InvalidFamilyCompositionException(
+                    "Une défunte ne peut pas avoir plus d'un conjoint.");
+        }
+
         // Validation 2: Valeurs par défaut pour null
         if (request.getNbFilles() == null) {
             request.setNbFilles(0);
