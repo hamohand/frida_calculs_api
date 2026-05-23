@@ -57,7 +57,7 @@ Les parts de base sont calculées sur la totalité de la succession :
 *   **Épouse** (si le défunt est un homme) :
     *   **1/4** s'il n'y a pas d'enfants.
     *   **1/8** s'il y a des enfants.
-    *   *Note* : S'il y a plusieurs épouses, elles partagent équitablement cette part collective (1/4 ou 1/8).
+    *   *Note* : S'il y a plusieurs épouses (jusqu'à 4), elles partagent équitablement cette part collective (1/4 ou 1/8). Pour une défunte, le nombre d'époux (conjoints) est strictement limité à 1.
 
 #### B. Mère
 *   **1/6** s'il y a des enfants OU s'il y a au moins 2 frères/sœurs actifs.
