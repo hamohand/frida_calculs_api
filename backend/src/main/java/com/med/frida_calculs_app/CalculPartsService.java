@@ -447,7 +447,12 @@ public class CalculPartsService {
         // Enregistrer la part légale d'origine (Fraction irréductible)
         for (Heritier h : heritiersList) {
             if (h.getPart() != null) {
-                h.setPartLegale(new Fraction(h.getPart().getNumerateur(), h.getPart().getDenominateur()));
+                if (HeirType.SPOUSE.getLabel().equals(h.getHeritier())) {
+                    // La part légale du conjoint reste la part collective théorique (1/4 ou 1/8)
+                    h.setPartLegale(new Fraction(final_conjoint.getNumerateur(), final_conjoint.getDenominateur()));
+                } else {
+                    h.setPartLegale(new Fraction(h.getPart().getNumerateur(), h.getPart().getDenominateur()));
+                }
             }
         }
 

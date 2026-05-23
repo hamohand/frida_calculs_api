@@ -561,6 +561,9 @@ class CalculPartsServiceTest {
                 assertNotNull(conjoint);
                 assertEquals(1, conjoint.getPart().getNumerateur());
                 assertEquals(8, conjoint.getPart().getDenominateur()); // 1/4 divisé par 2 = 1/8
+                assertNotNull(conjoint.getPartLegale());
+                assertEquals(1, conjoint.getPartLegale().getNumerateur());
+                assertEquals(4, conjoint.getPartLegale().getDenominateur()); // Part légale collective = 1/4
         }
 }
 
