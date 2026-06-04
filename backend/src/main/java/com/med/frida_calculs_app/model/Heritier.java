@@ -20,6 +20,8 @@ public class Heritier {
     private Fraction partLegale;
     @Schema(description = "Cadre légal du partage en arabe (الفرض, العصبة, العول, الرد)")
     private String cadreLegal;
+    @Schema(description = "Fraction irréductible représentant la part légale du type d'héritier")
+    private Fraction partIrreductible;
 
     public Heritier(String heritier, Fraction part) {
         this.heritier = heritier;
