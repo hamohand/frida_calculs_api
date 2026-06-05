@@ -5,14 +5,14 @@
         <div class="form-group">
             <label>Sexe du défunt</label>
             <div class="radio-group">
-                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="M"> Homme</label>
-                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="F"> Femme</label>
+                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="M" (change)="onFieldChange()"> Homme</label>
+                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="F" (change)="onFieldChange()"> Femme</label>
             </div>
         </div>
 
         <div class="form-group">
             <label>Conjoint(s) vivant(s)</label>
-            <select name="nbConjoints" [(ngModel)]="request.nbConjoints">
+            <select name="nbConjoints" [(ngModel)]="request.nbConjoints" (change)="onFieldChange()">
                 <option [value]="0">0</option>
                 <option [value]="1">1</option>
                 <option [value]="2" *ngIf="request.sexeDefunt === 'M'">2</option>
@@ -23,45 +23,43 @@
 
         <div class="form-group checkbox-group">
             <label> Parents & Ascendants vivants </label>
-            <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant" [disabled]="request.grandPerePaternelVivant" (change)="checkExclusions()"> Père</label>
-            <label><input type="checkbox" name="mereVivante" [(ngModel)]="request.mereVivante"> Mère</label>
-            <label><input type="checkbox" name="grandPerePaternelVivant" [(ngModel)]="request.grandPerePaternelVivant" [disabled]="request.pereVivant" (change)="checkExclusions()"> Grand-père paternel</label>
+            <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant" [disabled]="request.grandPerePaternelVivant" (change)="onFieldChange()"> Père</label>
+            <label><input type="checkbox" name="mereVivante" [(ngModel)]="request.mereVivante" (change)="onFieldChange()"> Mère</label>
+            <label><input type="checkbox" name="grandPerePaternelVivant" [(ngModel)]="request.grandPerePaternelVivant" [disabled]="request.pereVivant" (change)="onFieldChange()"> Grand-père paternel</label>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
                 <label>Filles</label>
-                <input type="number" name="nbFilles" [(ngModel)]="request.nbFilles" min="0">
+                <input type="number" name="nbFilles" [(ngModel)]="request.nbFilles" min="0" (ngModelChange)="onFieldChange()">
             </div>
             <div class="form-group">
                 <label>Garçons</label>
-                <input type="number" name="nbGarcons" [(ngModel)]="request.nbGarcons" min="0" (ngModelChange)="checkExclusions()">
+                <input type="number" name="nbGarcons" [(ngModel)]="request.nbGarcons" min="0" (ngModelChange)="onFieldChange()">
             </div>
             <div class="form-group">
                 <label [class.disabled-label]="isSiblingsExcluded()">Soeurs</label>
-                <input type="number" name="nbSoeurs" [(ngModel)]="request.nbSoeurs" min="0" [disabled]="isSiblingsExcluded()">
+                <input type="number" name="nbSoeurs" [(ngModel)]="request.nbSoeurs" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
                 <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
             </div>
             <div class="form-group">
                 <label [class.disabled-label]="isSiblingsExcluded()">Frères</label>
-                <input type="number" name="nbFreres" [(ngModel)]="request.nbFreres" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="checkExclusions()">
+                <input type="number" name="nbFreres" [(ngModel)]="request.nbFreres" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
                 <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
             </div>
             <div class="form-group">
                 <label [class.disabled-label]="isOnclesExcluded()">Oncles Paternels</label>
-                <input type="number" name="nbOncles" [(ngModel)]="request.nbOncles" min="0" [disabled]="isOnclesExcluded()" (ngModelChange)="checkExclusions()">
+                <input type="number" name="nbOncles" [(ngModel)]="request.nbOncles" min="0" [disabled]="isOnclesExcluded()" (ngModelChange)="onFieldChange()">
                 <small *ngIf="isOnclesExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon ou frère</small>
             </div>
             <div class="form-group">
                 <label [class.disabled-label]="isCousinsExcluded()">Cousins Paternels</label>
-                <input type="number" name="nbCousins" [(ngModel)]="request.nbCousins" min="0" [disabled]="isCousinsExcluded()">
+                <input type="number" name="nbCousins" [(ngModel)]="request.nbCousins" min="0" [disabled]="isCousinsExcluded()" (ngModelChange)="onFieldChange()">
                 <small *ngIf="isCousinsExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon, frère ou oncle</small>
             </div>
         </div>
 
-        <button type="submit" [disabled]="!familyForm.valid || loading" class="btn-calculate">
-            {{ loading ? 'Calcul en cours...' : 'Calculer les parts' }}
-        </button>
+        <h3 class="section-title" style="margin-top: 25px; color: #3f51b5; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">Calcul des parts</h3>
     </form>
 
     <div *ngIf="error" class="error-message">
@@ -81,9 +79,9 @@
             <thead>
                 <tr>
                     <th>Héritier</th>
-                    <th>Part individuelle (Irréductible)</th>
-                    <th>Part individuelle (Commune)</th>
-                    <th>Part individuelle (%)</th>
+                    <th>Fraction simplifiée</th>
+                    <th>Fraction sur dénominateur commun</th>
+                    <th>Part en pourcentage (%)</th>
                 </tr>
             </thead>
             <tbody>
@@ -104,7 +102,7 @@
 
         <!-- Table 2: Règles du partage -->
         <h4 class="table-heading spacing-top">Règles du partage</h4>
-        <table class="results-table" *ngIf="result.heritiers && result.heritiers.length > 0">
+        <table class="results-table" *ngIf="table2Rows && table2Rows.length > 0">
             <thead>
                 <tr>
                     <th>Type d'héritier en jeu</th>
@@ -114,19 +112,11 @@
                 </tr>
             </thead>
             <tbody>
-                <ng-container *ngFor="let item of result.heritiers">
-                    <tr *ngIf="item.heritier !== 'part restant' && item.heritier !== 'fille' && item.heritier !== 'garçon'">
-                        <td><strong>{{ item.heritier }}</strong></td>
-                        <td>{{ getLegalFractionDisplay(item) }}</td>
-                        <td class="text-muted"><small>{{ item.baseCalcul || '-' }}</small></td>
-                        <td class="arabic-text">{{ item.cadreLegal || '-' }}</td>
-                    </tr>
-                </ng-container>
-                <tr *ngIf="hasChildren()">
-                    <td><strong>{{ getChildrenLabel() }}</strong></td>
-                    <td>{{ getChildrenLegalShare() }}</td>
-                    <td class="text-muted"><small>{{ getChildrenBaseCalcul() }}</small></td>
-                    <td class="arabic-text">{{ getChildrenCadreLegal() }}</td>
+                <tr *ngFor="let item of table2Rows">
+                    <td><strong>{{ item.label }}</strong></td>
+                    <td>{{ item.partLegale }}</td>
+                    <td class="text-muted"><small>{{ item.baseCalcul }}</small></td>
+                    <td class="arabic-text">{{ item.cadreLegal }}</td>
                 </tr>
             </tbody>
         </table>

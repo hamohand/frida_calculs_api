@@ -31,6 +31,7 @@ export class FamilyFormComponent {
     result: HeritageResponse | null = null;
     error: string | null = null;
     loading: boolean = false;
+    table2Rows: any[] = [];
 
     constructor(private calculationService: CalculationService, private cdr: ChangeDetectorRef) { }
 
@@ -68,12 +69,77 @@ export class FamilyFormComponent {
         }
     }
 
-    onSubmit() {
-        this.loading = true;
-        this.error = null;
-        this.result = null;
+    isValidRequest(): boolean {
+        const req = this.request;
+        if (!req.sexeDefunt) return false;
+        
+        const hasHeir = (req.nbConjoints > 0) || req.pereVivant || req.mereVivante || 
+                        req.grandPerePaternelVivant || (req.nbFilles > 0) || (req.nbGarcons > 0) || 
+                        (req.nbSoeurs > 0) || (req.nbFreres > 0) || (req.nbOncles > 0) || (req.nbCousins > 0);
+                        
+        return hasHeir;
+    }
 
-        // Conversion des inputs number
+    onFieldChange() {
+        this.checkExclusions();
+        this.onSubmit();
+    }
+
+    sortHeritiers(heritiers: Heritier[]): Heritier[] {
+        if (!heritiers) return [];
+        return [...heritiers].sort((a, b) => {
+            const isTotalA = a.baseCalcul === "de la totalité de l'héritage";
+            const isTotalB = b.baseCalcul === "de la totalité de l'héritage";
+            
+            if (isTotalA && !isTotalB) return -1;
+            if (!isTotalA && isTotalB) return 1;
+            
+            return 0;
+        });
+    }
+
+    updateTable2Rows() {
+        if (!this.result || !this.result.heritiers) {
+            this.table2Rows = [];
+            return;
+        }
+
+        const rows: any[] = [];
+        
+        for (const item of this.result.heritiers) {
+            if (item.heritier !== 'part restant' && item.heritier !== 'fille' && item.heritier !== 'garçon') {
+                rows.push({
+                    label: item.heritier,
+                    partLegale: this.getLegalFractionDisplay(item),
+                    baseCalcul: item.baseCalcul || '-',
+                    cadreLegal: item.cadreLegal || '-'
+                });
+            }
+        }
+
+        if (this.hasChildren()) {
+            rows.push({
+                label: this.getChildrenLabel(),
+                partLegale: this.getChildrenLegalShare(),
+                baseCalcul: this.getChildrenBaseCalcul(),
+                cadreLegal: this.getChildrenCadreLegal()
+            });
+        }
+
+        this.table2Rows = rows.sort((a, b) => {
+            const isTotalA = a.baseCalcul === "de la totalité de l'héritage";
+            const isTotalB = b.baseCalcul === "de la totalité de l'héritage";
+            
+            if (isTotalA && !isTotalB) return -1;
+            if (!isTotalA && isTotalB) return 1;
+            
+            return 0;
+        });
+    }
+
+    onSubmit() {
+        this.error = null;
+        
         this.request.nbConjoints = Number(this.request.nbConjoints);
         this.request.nbFilles = Number(this.request.nbFilles);
         this.request.nbGarcons = Number(this.request.nbGarcons);
@@ -82,6 +148,13 @@ export class FamilyFormComponent {
         this.request.nbOncles = Number(this.request.nbOncles);
         this.request.nbCousins = Number(this.request.nbCousins);
 
+        if (!this.isValidRequest()) {
+            this.result = null;
+            this.table2Rows = [];
+            return;
+        }
+
+        this.loading = true;
         console.log('Envoi de la demande:', this.request);
 
         this.calculationService.calculate(this.request).subscribe({
@@ -89,6 +162,10 @@ export class FamilyFormComponent {
                 console.log('Réponse reçue:', response);
                 try {
                     this.result = response;
+                    if (this.result && this.result.heritiers) {
+                        this.result.heritiers = this.sortHeritiers(this.result.heritiers);
+                    }
+                    this.updateTable2Rows();
                     this.loading = false;
                     this.cdr.detectChanges(); // Force UI update
                 } catch (e) {
