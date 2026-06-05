@@ -147,3 +147,11 @@ input:disabled {
     color: #2e7d32; /* A nice, premium green for the theological concepts */
     text-align: center !important; /* Center the Arabic text for better design alignment */
 }
+
+.table-note {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 8px;
+    font-style: italic;
+    line-height: 1.3;
+}

@@ -81,14 +81,14 @@
             <thead>
                 <tr>
                     <th>Héritier</th>
-                    <th>Part (Irréductible)</th>
-                    <th>Part (Commune)</th>
-                    <th>Part (Pourcentage)</th>
+                    <th>Part individuelle (Irréductible)</th>
+                    <th>Part individuelle (Commune)</th>
+                    <th>Part individuelle (%)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let item of result.heritiers">
-                    <td>{{ item.heritier }}</td>
+                    <td>{{ getHeirLabel(item) }}</td>
                     <td>{{ getIrreducibleFractionDisplay(item) }}</td>
                     <td>{{ getFractionDisplay(item) }}</td>
                     <td>
@@ -100,6 +100,7 @@
                 </tr>
             </tbody>
         </table>
+        <p class="table-note">* Les parts ci-dessus sont des parts individuelles (pour chaque héritier de cette catégorie).</p>
 
         <!-- Table 2: Règles du partage -->
         <h4 class="table-heading spacing-top">Règles du partage</h4>
@@ -107,7 +108,7 @@
             <thead>
                 <tr>
                     <th>Type d'héritier en jeu</th>
-                    <th>Part légale</th>
+                    <th>Part légale (collective)</th>
                     <th>Base de calcul</th>
                     <th>Cadre (الإطار)</th>
                 </tr>
@@ -129,6 +130,7 @@
                 </tr>
             </tbody>
         </table>
+        <p class="table-note">* La part légale représente la part globale (collective) attribuée à cette catégorie d'héritiers avant partage entre individus.</p>
 
         <div *ngIf="!result.heritiers || result.heritiers.length === 0" class="no-heirs">
             Aucun héritier trouvé.

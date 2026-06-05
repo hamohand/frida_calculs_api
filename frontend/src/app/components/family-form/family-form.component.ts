@@ -201,4 +201,28 @@ export class FamilyFormComponent {
         
         return '-';
     }
+
+    getHeirLabel(item: Heritier): string {
+        if (!item || !this.result || !this.result.composition) return item.heritier;
+        const comp = this.result.composition;
+        
+        switch (item.heritier) {
+            case 'conjoint':
+                return comp.nbConjoints > 1 ? 'conjoint (chacun)' : 'conjoint';
+            case 'fille':
+                return comp.nbFilles > 1 ? 'fille (chacune)' : 'fille';
+            case 'garçon':
+                return comp.nbGarcons > 1 ? 'garçon (chacun)' : 'garçon';
+            case 'soeur':
+                return comp.nbSoeurs > 1 ? 'soeur (chacune)' : 'soeur';
+            case 'frere':
+                return comp.nbFreres > 1 ? 'frere (chacun)' : 'frere';
+            case 'oncle paternel':
+                return comp.nbOncles > 1 ? 'oncle paternel (chacun)' : 'oncle paternel';
+            case 'cousin paternel':
+                return comp.nbCousins > 1 ? 'cousin paternel (chacun)' : 'cousin paternel';
+            default:
+                return item.heritier;
+        }
+    }
 }
