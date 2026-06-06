@@ -9,7 +9,7 @@ import { HeritageResponse } from '../models/heritage-response.model';
 })
 export class CalculationService {
 
-    private apiUrl = 'http://localhost:8081/calculs/api/v1/heritage/calculate';
+    private apiUrl = 'http://localhost:8085/calculs/api/v1/heritage/calculate';
 
     constructor(private http: HttpClient) { }
 

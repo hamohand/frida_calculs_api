@@ -52,6 +52,18 @@ public class FamilyRequestValidator {
         if (request.getNbCousins() == null) {
             request.setNbCousins(0);
         }
+        if (request.getNbPetitsFils() == null) {
+            request.setNbPetitsFils(0);
+        }
+        if (request.getNbPetitesFilles() == null) {
+            request.setNbPetitesFilles(0);
+        }
+        if (request.getSexeParentPredecede() != null &&
+                !request.getSexeParentPredecede().equalsIgnoreCase("M") &&
+                !request.getSexeParentPredecede().equalsIgnoreCase("F")) {
+            throw new InvalidFamilyCompositionException(
+                    "Le sexe du parent pré-décédé doit être 'M' ou 'F'");
+        }
 
         // Validation 3: Cohérence logique - si des enfants existent, la fratrie ne
         // devrait pas hériter

@@ -106,4 +106,23 @@ public class CalculsPartsController {
         public ResponseEntity<String> status() {
                 return ResponseEntity.ok("API Frida Calculs - v1.0.0 - Opérationnelle ✓");
         }
+
+        @GetMapping("/testHeritier")
+        public Heritier testHeritier() {
+                Heritier h = new Heritier("test");
+                h.setPartLegale(new com.med.frida_calculs_app.model.Fraction(1, 2));
+                h.setCadreLegal("testCadre");
+                return h;
+        }
+
+        @GetMapping("/testHeritageResponse")
+        public HeritageResponse testHeritageResponse() {
+                Heritier h = new Heritier("test");
+                h.setPartLegale(new com.med.frida_calculs_app.model.Fraction(1, 2));
+                h.setCadreLegal("testCadre");
+                
+                HeritageResponse hr = new HeritageResponse();
+                hr.setHeritiers(java.util.List.of(h));
+                return hr;
+        }
 }

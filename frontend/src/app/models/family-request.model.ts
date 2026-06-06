@@ -10,4 +10,9 @@ export interface FamilyRequest {
     nbFreres: number;
     nbOncles: number;
     nbCousins: number;
+
+    // Champs pour le testament obligatoire (Wasiyya Wajiba)
+    nbPetitsFils?: number;
+    nbPetitesFilles?: number;
+    sexeParentPredecede?: string;
 }

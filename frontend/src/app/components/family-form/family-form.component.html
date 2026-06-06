@@ -2,6 +2,7 @@
     <h2>Composition Familiale</h2>
     <form (ngSubmit)="onSubmit()" #familyForm="ngForm">
 
+        <h4 class="section-subtitle" style="margin-top: 10px;">Défunt & Conjoint(s)</h4>
         <div class="form-group">
             <label>Sexe du défunt</label>
             <div class="radio-group">
@@ -21,13 +22,14 @@
             </select>
         </div>
 
+        <h4 class="section-subtitle">Ascendants</h4>
         <div class="form-group checkbox-group">
-            <label> Parents & Ascendants vivants </label>
             <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant" [disabled]="request.grandPerePaternelVivant" (change)="onFieldChange()"> Père</label>
             <label><input type="checkbox" name="mereVivante" [(ngModel)]="request.mereVivante" (change)="onFieldChange()"> Mère</label>
             <label><input type="checkbox" name="grandPerePaternelVivant" [(ngModel)]="request.grandPerePaternelVivant" [disabled]="request.pereVivant" (change)="onFieldChange()"> Grand-père paternel</label>
         </div>
 
+        <h4 class="section-subtitle">Descendants</h4>
         <div class="form-grid">
             <div class="form-group">
                 <label>Filles</label>
@@ -37,6 +39,29 @@
                 <label>Garçons</label>
                 <input type="number" name="nbGarcons" [(ngModel)]="request.nbGarcons" min="0" (ngModelChange)="onFieldChange()">
             </div>
+        </div>
+
+        <h4 class="section-subtitle">Petits-enfants (Wasiyya Wajiba)</h4>
+        <div class="form-group" style="margin-bottom: 5px;">
+            <label style="font-size: 0.9em; color: #555;">Sexe du parent pré-décédé :</label>
+            <div class="radio-group">
+                <label><input type="radio" name="sexeParentPredecede" [(ngModel)]="request.sexeParentPredecede" value="M" (change)="onFieldChange()"> Fils</label>
+                <label><input type="radio" name="sexeParentPredecede" [(ngModel)]="request.sexeParentPredecede" value="F" (change)="onFieldChange()"> Fille</label>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Petits-fils</label>
+                <input type="number" name="nbPetitsFils" [(ngModel)]="request.nbPetitsFils" min="0" (ngModelChange)="onFieldChange()">
+            </div>
+            <div class="form-group">
+                <label>Petites-filles</label>
+                <input type="number" name="nbPetitesFilles" [(ngModel)]="request.nbPetitesFilles" min="0" (ngModelChange)="onFieldChange()">
+            </div>
+        </div>
+
+        <h4 class="section-subtitle">Fratrie</h4>
+        <div class="form-grid">
             <div class="form-group">
                 <label [class.disabled-label]="isSiblingsExcluded()">Soeurs</label>
                 <input type="number" name="nbSoeurs" [(ngModel)]="request.nbSoeurs" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
@@ -47,6 +72,10 @@
                 <input type="number" name="nbFreres" [(ngModel)]="request.nbFreres" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
                 <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
             </div>
+        </div>
+
+        <h4 class="section-subtitle">Oncles & Cousins</h4>
+        <div class="form-grid">
             <div class="form-group">
                 <label [class.disabled-label]="isOnclesExcluded()">Oncles Paternels</label>
                 <input type="number" name="nbOncles" [(ngModel)]="request.nbOncles" min="0" [disabled]="isOnclesExcluded()" (ngModelChange)="onFieldChange()">

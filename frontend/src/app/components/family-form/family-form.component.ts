@@ -25,7 +25,10 @@ export class FamilyFormComponent {
         nbSoeurs: 0,
         nbFreres: 0,
         nbOncles: 0,
-        nbCousins: 0
+        nbCousins: 0,
+        nbPetitsFils: 0,
+        nbPetitesFilles: 0,
+        sexeParentPredecede: 'M'
     };
 
     result: HeritageResponse | null = null;
