@@ -46,6 +46,12 @@ public class HeritageResponse {
         @Schema(description = "Résumé de la composition familiale")
         private CompositionFamiliale composition;
 
+        @Schema(description = "Détail par tombe (uniquement en mode étendu multi-tombes)")
+        private List<TombeDetail> detailTombes;
+
+        @Schema(description = "Nombre de tombes (héritiers pré-décédés référencés)", example = "2")
+        private Integer nombreTombes;
+
         @Data
         @Builder
         @NoArgsConstructor
@@ -66,6 +72,8 @@ public class HeritageResponse {
 
                 @Schema(description = "Présence du grand-père paternel", example = "false")
                 private boolean grandPerePaternelVivant;
+                @Schema(description = "Présence de la grand-mère paternelle", example = "false")
+                private boolean grandMerePaternelleVivante;
 
                 @Schema(description = "Nombre de filles", example = "1")
                 private int nbFilles;
@@ -130,8 +138,9 @@ public class HeritageResponse {
                                                 .nbConjoints(request.getNbConjoints() != null ? request.getNbConjoints()
                                                                 : 0)
                                                 .pereVivant(request.isPereVivant())
-                                                .grandPerePaternelVivant(request.isGrandPerePaternelVivant())
                                                 .mereVivante(request.isMereVivante())
+                                                .grandPerePaternelVivant(request.isGrandPerePaternelVivant())
+                                                .grandMerePaternelleVivante(request.isGrandMerePaternelleVivante())
                                                 .nbFilles(request.getNbFilles() != null ? request.getNbFilles() : 0)
                                                 .nbGarcons(request.getNbGarcons() != null ? request.getNbGarcons() : 0)
                                                 .nbSoeurs(request.getNbSoeurs() != null ? request.getNbSoeurs() : 0)

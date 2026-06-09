@@ -45,6 +45,7 @@ public class CalculPartsService {
                 .pereVivant(request.isPereVivant())
                 .mereVivante(request.isMereVivante())
                 .grandPerePaternelVivant(request.isGrandPerePaternelVivant())
+                .grandMerePaternelleVivante(request.isGrandMerePaternelleVivante())
                 .nbFilles(request.getNbFilles() != null ? request.getNbFilles() : 0)
                 .nbGarcons(request.getNbGarcons() != null ? request.getNbGarcons() : 0)
                 .nbSoeurs(request.getNbSoeurs() != null ? request.getNbSoeurs() : 0)
@@ -137,13 +138,18 @@ public class CalculPartsService {
         return finalResult;
     }
 
-    private List<Heritier> calculPartsInterne(com.med.frida_calculs_app.model.FamilyRequest request, Fraction multiplicateur) {
+    /**
+     * Méthode interne de calcul des parts d'héritage.
+     * Visibilité package pour permettre la réutilisation par CalculPartsEtenduService.
+     */
+    List<Heritier> calculPartsInterne(com.med.frida_calculs_app.model.FamilyRequest request, Fraction multiplicateur) {
         String sexe_defunt = request.getSexeDefunt();
         boolean conjoint_vivant = request.getNbConjoints() != null && request.getNbConjoints() > 0;
         int nb_conjoints = request.getNbConjoints() != null ? request.getNbConjoints() : 0;
         boolean pere_vivant = request.isPereVivant();
         boolean grand_pere_vivant = request.isGrandPerePaternelVivant();
         boolean mere_vivante = request.isMereVivante();
+        boolean grand_mere_vivante = request.isGrandMerePaternelleVivante();
         int nb_filles = request.getNbFilles() != null ? request.getNbFilles() : 0;
         int nb_garcons = request.getNbGarcons() != null ? request.getNbGarcons() : 0;
         int nb_soeurs = request.getNbSoeurs() != null ? request.getNbSoeurs() : 0;
@@ -151,9 +157,15 @@ public class CalculPartsService {
         int nb_oncles = request.getNbOncles() != null ? request.getNbOncles() : 0;
         int nb_cousins = request.getNbCousins() != null ? request.getNbCousins() : 0;
 
-        // Le père exclut le grand-père
+        // Le père exclut le grand-père et la grand-mère paternelle
         if (pere_vivant) {
             grand_pere_vivant = false;
+            grand_mere_vivante = false;
+        }
+
+        // La mère exclut la grand-mère paternelle
+        if (mere_vivante) {
+            grand_mere_vivante = false;
         }
 
         int active_freres = nb_freres;
@@ -177,6 +189,7 @@ public class CalculPartsService {
         Fraction f_mere = new Fraction(0);
         Fraction f_pere = new Fraction(0);
         Fraction f_grand_pere = new Fraction(0);
+        Fraction f_grand_mere = new Fraction(0);
         Fraction f_filles = new Fraction(0);
         Fraction f_soeurs = new Fraction(0);
 
@@ -219,6 +232,10 @@ public class CalculPartsService {
             else f_grand_pere = new Fraction(0);
         }
 
+        if (grand_mere_vivante) {
+            f_grand_mere = new Fraction(1, 6);
+        }
+
         if (nb_filles > 0 && nb_garcons == 0) {
             f_filles = (nb_filles == 1) ? new Fraction(1, 2) : new Fraction(2, 3);
         }
@@ -231,6 +248,7 @@ public class CalculPartsService {
         Fraction final_mere = f_mere;
         Fraction final_pere = f_pere;
         Fraction final_grand_pere = f_grand_pere;
+        Fraction final_grand_mere = f_grand_mere;
         Fraction final_fille = (nb_filles > 0 && nb_garcons == 0) ? f_filles.diviser(nb_filles) : null;
         Fraction final_garcon = null;
         Fraction final_soeur = (active_soeurs > 0 && active_freres == 0 && nb_filles == 0 && nb_garcons == 0) ? f_soeurs.diviser(active_soeurs) : null;
@@ -244,6 +262,7 @@ public class CalculPartsService {
         listFixed.add(f_mere);
         listFixed.add(f_pere);
         listFixed.add(f_grand_pere);
+        listFixed.add(f_grand_mere);
         listFixed.add(f_filles);
         listFixed.add(f_soeurs);
 
@@ -256,6 +275,7 @@ public class CalculPartsService {
         String cadre_mere = "";
         String cadre_pere = "";
         String cadre_grand_pere = "";
+        String cadre_grand_mere = "";
         String cadre_fille = "";
         String cadre_garcon = "";
         String cadre_soeur = "";
@@ -268,15 +288,16 @@ public class CalculPartsService {
             final_mere = new Fraction(listCommon.get(1).getNumerateur(), sumNum);
             final_pere = new Fraction(listCommon.get(2).getNumerateur(), sumNum);
             final_grand_pere = new Fraction(listCommon.get(3).getNumerateur(), sumNum);
-            if (nb_filles > 0) final_fille = new Fraction(listCommon.get(4).getNumerateur(), sumNum).diviser(nb_filles);
-            if (active_soeurs > 0) final_soeur = new Fraction(listCommon.get(5).getNumerateur(), sumNum).diviser(active_soeurs);
+            final_grand_mere = new Fraction(listCommon.get(4).getNumerateur(), sumNum);
+            if (nb_filles > 0) final_fille = new Fraction(listCommon.get(5).getNumerateur(), sumNum).diviser(nb_filles);
+            if (active_soeurs > 0) final_soeur = new Fraction(listCommon.get(6).getNumerateur(), sumNum).diviser(active_soeurs);
             
             if (nb_garcons > 0) { final_garcon = new Fraction(0); if (nb_filles > 0) final_fille = new Fraction(0); }
             if (active_freres > 0) { final_frere = new Fraction(0); if (active_soeurs > 0) final_soeur = new Fraction(0); }
             if (active_oncles > 0) final_oncle = new Fraction(0);
             if (active_cousins > 0) final_cousin = new Fraction(0);
             
-            cadre_conjoint = cadre_mere = cadre_pere = cadre_grand_pere = cadre_fille = cadre_soeur = "العول (Aoul - Réduction)";
+            cadre_conjoint = cadre_mere = cadre_pere = cadre_grand_pere = cadre_grand_mere = cadre_fille = cadre_soeur = "العول (Aoul - Réduction)";
             cadre_garcon = cadre_frere = cadre_oncle = cadre_cousin = "العصبة (Asaba - Résiduaire)";
         } else {
             Fraction residue = new Fraction(commonDen - sumNum, commonDen);
@@ -319,10 +340,11 @@ public class CalculPartsService {
             boolean is_radd = !has_asaba && residue.getNumerateur() > 0;
 
             if (is_radd) {
-                Fraction sommeEligible = f_mere.ajouter(f_filles).ajouter(f_soeurs);
+                Fraction sommeEligible = f_mere.ajouter(f_grand_mere).ajouter(f_filles).ajouter(f_soeurs);
                 if (sommeEligible.getNumerateur() > 0) {
                     Fraction multiplierFactor = new Fraction(1).soustraire(f_conjoint).diviser(sommeEligible);
                     if (mere_vivante) final_mere = f_mere.multiplier(multiplierFactor);
+                    if (grand_mere_vivante) final_grand_mere = f_grand_mere.multiplier(multiplierFactor);
                     if (nb_filles > 0) final_fille = f_filles.multiplier(multiplierFactor).diviser(nb_filles);
                     if (active_soeurs > 0) final_soeur = f_soeurs.multiplier(multiplierFactor).diviser(active_soeurs);
                 } else {
@@ -334,6 +356,7 @@ public class CalculPartsService {
             if (mere_vivante) cadre_mere = is_radd ? "الفرض والرد (Fard et Radd)" : "الفرض (Fard - Part fixe)";
             if (pere_vivant && cadre_pere.isEmpty()) cadre_pere = "الفرض (Fard - Part fixe)";
             if (grand_pere_vivant && cadre_grand_pere.isEmpty()) cadre_grand_pere = "الفرض (Fard - Part fixe)";
+            if (grand_mere_vivante && cadre_grand_mere.isEmpty()) cadre_grand_mere = is_radd ? "الفرض والرد (Fard et Radd)" : "الفرض (Fard - Part fixe)";
             if (nb_filles > 0 && cadre_fille.isEmpty()) cadre_fille = is_radd ? "الفرض والرد (Fard et Radd)" : "الفرض (Fard - Part fixe)";
             if (nb_soeurs > 0 && cadre_soeur.isEmpty()) cadre_soeur = (active_soeurs == 0) ? "محجوب (Exclu)" : (is_radd ? "الفرض والرد (Fard et Radd)" : "الفرض (Fard - Part fixe)");
             if (nb_freres > 0 && cadre_frere.isEmpty()) cadre_frere = (active_freres == 0) ? "محجوب (Exclu)" : "العصبة (Asaba - Résiduaire)";
@@ -361,6 +384,13 @@ public class CalculPartsService {
         if (grand_pere_vivant) {
             Heritier h = new Heritier(HeirType.PATERNAL_GRANDFATHER, (final_grand_pere != null ? final_grand_pere : new Fraction(0)).multiplier(multiplicateur));
             h.setCadreLegal(cadre_grand_pere);
+            h.setPartLegale(h.getPart());
+            heritiersList.add(h);
+            fractionsList.add(h.getPart());
+        }
+        if (grand_mere_vivante) {
+            Heritier h = new Heritier(HeirType.PATERNAL_GRANDMOTHER, (final_grand_mere != null ? final_grand_mere : new Fraction(0)).multiplier(multiplicateur));
+            h.setCadreLegal(cadre_grand_mere);
             h.setPartLegale(h.getPart());
             heritiersList.add(h);
             fractionsList.add(h.getPart());

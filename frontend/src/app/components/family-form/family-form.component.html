@@ -2,89 +2,155 @@
     <h2>Composition Familiale</h2>
     <form (ngSubmit)="onSubmit()" #familyForm="ngForm">
 
-        <h4 class="section-subtitle" style="margin-top: 10px;">Défunt & Conjoint(s)</h4>
-        <div class="form-group">
-            <label>Sexe du défunt</label>
-            <div class="radio-group">
-                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="M" (change)="onFieldChange()"> Homme</label>
-                <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="F" (change)="onFieldChange()"> Femme</label>
+        <div class="form-section section-defunt">
+            <h4 class="section-subtitle">Défunt & Conjoint(s)</h4>
+            <div class="form-group">
+                <label>Sexe du défunt</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="M" (change)="onFieldChange()"> Homme</label>
+                    <label><input type="radio" name="sexeDefunt" [(ngModel)]="request.sexeDefunt" value="F" (change)="onFieldChange()"> Femme</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Conjoint(s) vivant(s)</label>
+                <select name="nbConjoints" [(ngModel)]="request.nbConjoints" (change)="onFieldChange()">
+                    <option [value]="0">0</option>
+                    <option [value]="1">1</option>
+                    <option [value]="2" *ngIf="request.sexeDefunt === 'M'">2</option>
+                    <option [value]="3" *ngIf="request.sexeDefunt === 'M'">3</option>
+                    <option [value]="4" *ngIf="request.sexeDefunt === 'M'">4</option>
+                </select>
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Conjoint(s) vivant(s)</label>
-            <select name="nbConjoints" [(ngModel)]="request.nbConjoints" (change)="onFieldChange()">
-                <option [value]="0">0</option>
-                <option [value]="1">1</option>
-                <option [value]="2" *ngIf="request.sexeDefunt === 'M'">2</option>
-                <option [value]="3" *ngIf="request.sexeDefunt === 'M'">3</option>
-                <option [value]="4" *ngIf="request.sexeDefunt === 'M'">4</option>
-            </select>
-        </div>
-
-        <h4 class="section-subtitle">Ascendants</h4>
-        <div class="form-group checkbox-group">
-            <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant" [disabled]="request.grandPerePaternelVivant" (change)="onFieldChange()"> Père</label>
-            <label><input type="checkbox" name="mereVivante" [(ngModel)]="request.mereVivante" (change)="onFieldChange()"> Mère</label>
-            <label><input type="checkbox" name="grandPerePaternelVivant" [(ngModel)]="request.grandPerePaternelVivant" [disabled]="request.pereVivant" (change)="onFieldChange()"> Grand-père paternel</label>
-        </div>
-
-        <h4 class="section-subtitle">Descendants</h4>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Filles</label>
-                <input type="number" name="nbFilles" [(ngModel)]="request.nbFilles" min="0" (ngModelChange)="onFieldChange()">
-            </div>
-            <div class="form-group">
-                <label>Garçons</label>
-                <input type="number" name="nbGarcons" [(ngModel)]="request.nbGarcons" min="0" (ngModelChange)="onFieldChange()">
+        <div class="form-section section-ascendants">
+            <h4 class="section-subtitle">Ascendants</h4>
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" name="pereVivant" [(ngModel)]="request.pereVivant" [disabled]="request.grandPerePaternelVivant" (change)="onFieldChange()"> Père</label>
+                <label><input type="checkbox" name="mereVivante" [(ngModel)]="request.mereVivante" (change)="onFieldChange()"> Mère</label>
+                <label><input type="checkbox" name="grandPerePaternelVivant" [(ngModel)]="request.grandPerePaternelVivant" [disabled]="request.pereVivant" (change)="onFieldChange()"> Grand-père paternel</label>
+                <label><input type="checkbox" name="grandMerePaternelleVivante" [(ngModel)]="request.grandMerePaternelleVivante" [disabled]="request.mereVivante || request.pereVivant" (change)="onFieldChange()"> Grand-mère paternelle</label>
             </div>
         </div>
 
-        <h4 class="section-subtitle">Petits-enfants (Wasiyya Wajiba)</h4>
-        <div class="form-group" style="margin-bottom: 5px;">
-            <label style="font-size: 0.9em; color: #555;">Sexe du parent pré-décédé :</label>
-            <div class="radio-group">
-                <label><input type="radio" name="sexeParentPredecede" [(ngModel)]="request.sexeParentPredecede" value="M" (change)="onFieldChange()"> Fils</label>
-                <label><input type="radio" name="sexeParentPredecede" [(ngModel)]="request.sexeParentPredecede" value="F" (change)="onFieldChange()"> Fille</label>
-            </div>
-        </div>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Petits-fils</label>
-                <input type="number" name="nbPetitsFils" [(ngModel)]="request.nbPetitsFils" min="0" (ngModelChange)="onFieldChange()">
-            </div>
-            <div class="form-group">
-                <label>Petites-filles</label>
-                <input type="number" name="nbPetitesFilles" [(ngModel)]="request.nbPetitesFilles" min="0" (ngModelChange)="onFieldChange()">
+        <div class="form-section section-descendants">
+            <h4 class="section-subtitle">Descendants</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Filles</label>
+                    <input type="number" name="nbFilles" [(ngModel)]="request.nbFilles" min="0" (ngModelChange)="onFieldChange()">
+                </div>
+                <div class="form-group">
+                    <label>Garçons</label>
+                    <input type="number" name="nbGarcons" [(ngModel)]="request.nbGarcons" min="0" (ngModelChange)="onFieldChange()">
+                </div>
             </div>
         </div>
 
-        <h4 class="section-subtitle">Fratrie</h4>
-        <div class="form-grid">
-            <div class="form-group">
-                <label [class.disabled-label]="isSiblingsExcluded()">Soeurs</label>
-                <input type="number" name="nbSoeurs" [(ngModel)]="request.nbSoeurs" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
-                <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
+        <!-- ===== SECTION WASIYYA ===== -->
+        <div class="form-section section-wasiyya">
+            <!-- Toggle Mode Étendu -->
+            <div class="mode-toggle" style="margin-bottom: 10px;">
+                <label class="toggle-label">
+                    <input type="checkbox" [(ngModel)]="modeEtendu" [ngModelOptions]="{standalone: true}" (change)="onModeChange()">
+                    <span class="toggle-text">⚙️ Mode étendu (multi-tombes)</span>
+                </label>
+                <small *ngIf="modeEtendu" class="mode-hint">Permet de gérer plusieurs héritiers pré-décédés</small>
             </div>
-            <div class="form-group">
-                <label [class.disabled-label]="isSiblingsExcluded()">Frères</label>
-                <input type="number" name="nbFreres" [(ngModel)]="request.nbFreres" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
-                <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
+
+            <!-- Mode Simple (existant) -->
+            <div *ngIf="!modeEtendu">
+                <h4 class="section-subtitle">Petits-enfants (Wasiyya Wajiba)</h4>
+                <div class="form-group" style="margin-bottom: 5px;">
+                    <label style="font-size: 0.9em; color: #555;">Sexe du parent pré-décédé :</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="sexeParentPredecede" [(ngModel)]="request.sexeParentPredecede" value="M" (change)="onFieldChange()"> Fils</label>
+                        <label><input type="radio" name="sexeParentPredecede" [(ngModel)]="request.sexeParentPredecede" value="F" (change)="onFieldChange()"> Fille</label>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Petits-fils</label>
+                        <input type="number" name="nbPetitsFils" [(ngModel)]="request.nbPetitsFils" min="0" (ngModelChange)="onFieldChange()">
+                    </div>
+                    <div class="form-group">
+                        <label>Petites-filles</label>
+                        <input type="number" name="nbPetitesFilles" [(ngModel)]="request.nbPetitesFilles" min="0" (ngModelChange)="onFieldChange()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Étendu (multi-tombes) -->
+            <div *ngIf="modeEtendu" class="extended-section">
+                <h4 class="section-subtitle">Héritiers pré-décédés (Tombes) <span class="tombe-count">{{ tombes.length }}</span></h4>
+
+                <div *ngFor="let tombe of tombes; let i = index" class="tombe-card">
+                    <div class="tombe-header">
+                        <strong>🪦 Tombe {{ i + 1 }}</strong>
+                        <button type="button" class="btn-remove" (click)="removeTombe(i)" title="Supprimer cette tombe">✕</button>
+                    </div>
+                    <div class="tombe-body">
+                        <div class="form-group">
+                            <label>Lien de parenté avec le défunt</label>
+                            <select [(ngModel)]="tombe.lienParente" [ngModelOptions]="{standalone: true}" (change)="onFieldChange()">
+                                <option value="enfant">Enfant (Fils / Fille)</option>
+                                <option value="frere_soeur" *ngIf="!isSiblingsExcluded()">Frère / Sœur</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sexe du pré-décédé</label>
+                            <div class="radio-group">
+                                <label><input type="radio" [name]="'sexeTombe_'+i" [(ngModel)]="tombe.sexeParentPredecede" [ngModelOptions]="{standalone: true}" value="M" (change)="onFieldChange()"> {{ tombe.lienParente === 'enfant' ? 'Fils' : 'Frère' }}</label>
+                                <label><input type="radio" [name]="'sexeTombe_'+i" [(ngModel)]="tombe.sexeParentPredecede" [ngModelOptions]="{standalone: true}" value="F" (change)="onFieldChange()"> {{ tombe.lienParente === 'enfant' ? 'Fille' : 'Sœur' }}</label>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>{{ tombe.lienParente === 'enfant' ? 'Petits-fils' : 'Neveux' }}</label>
+                                <input type="number" [(ngModel)]="tombe.nbDescendantsMales" [ngModelOptions]="{standalone: true}" min="0" (ngModelChange)="onFieldChange()">
+                            </div>
+                            <div class="form-group">
+                                <label>{{ tombe.lienParente === 'enfant' ? 'Petites-filles' : 'Nièces' }}</label>
+                                <input type="number" [(ngModel)]="tombe.nbDescendantesFemelles" [ngModelOptions]="{standalone: true}" min="0" (ngModelChange)="onFieldChange()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-add-tombe" (click)="addTombe()">+ Ajouter une tombe</button>
             </div>
         </div>
 
-        <h4 class="section-subtitle">Oncles & Cousins</h4>
-        <div class="form-grid">
-            <div class="form-group">
-                <label [class.disabled-label]="isOnclesExcluded()">Oncles Paternels</label>
-                <input type="number" name="nbOncles" [(ngModel)]="request.nbOncles" min="0" [disabled]="isOnclesExcluded()" (ngModelChange)="onFieldChange()">
-                <small *ngIf="isOnclesExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon ou frère</small>
+        <div class="form-section section-fratrie">
+            <h4 class="section-subtitle">Fratrie</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label [class.disabled-label]="isSiblingsExcluded()">Soeurs</label>
+                    <input type="number" name="nbSoeurs" [(ngModel)]="request.nbSoeurs" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
+                    <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
+                </div>
+                <div class="form-group">
+                    <label [class.disabled-label]="isSiblingsExcluded()">Frères</label>
+                    <input type="number" name="nbFreres" [(ngModel)]="request.nbFreres" min="0" [disabled]="isSiblingsExcluded()" (ngModelChange)="onFieldChange()">
+                    <small *ngIf="isSiblingsExcluded()" class="exclusion-note">Exclu par le père, le grand-père ou un garçon</small>
+                </div>
             </div>
-            <div class="form-group">
-                <label [class.disabled-label]="isCousinsExcluded()">Cousins Paternels</label>
-                <input type="number" name="nbCousins" [(ngModel)]="request.nbCousins" min="0" [disabled]="isCousinsExcluded()" (ngModelChange)="onFieldChange()">
-                <small *ngIf="isCousinsExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon, frère ou oncle</small>
+        </div>
+
+        <div class="form-section section-oncles">
+            <h4 class="section-subtitle">Oncles & Cousins</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label [class.disabled-label]="isOnclesExcluded()">Oncles Paternels</label>
+                    <input type="number" name="nbOncles" [(ngModel)]="request.nbOncles" min="0" [disabled]="isOnclesExcluded()" (ngModelChange)="onFieldChange()">
+                    <small *ngIf="isOnclesExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon ou frère</small>
+                </div>
+                <div class="form-group">
+                    <label [class.disabled-label]="isCousinsExcluded()">Cousins Paternels</label>
+                    <input type="number" name="nbCousins" [(ngModel)]="request.nbCousins" min="0" [disabled]="isCousinsExcluded()" (ngModelChange)="onFieldChange()">
+                    <small *ngIf="isCousinsExcluded()" class="exclusion-note">Exclu par père, grand-père, garçon, frère ou oncle</small>
+                </div>
             </div>
         </div>
 
@@ -100,6 +166,10 @@
         <div class="summary">
             <p>Nombre d'héritiers : <strong>{{ result.nombreHeritiers }}</strong></p>
             <p>Dénominateur commun : <strong>{{ result.denominateurCommun }}</strong></p>
+            <p *ngIf="result.nombreTombes && result.nombreTombes > 0">
+                Nombre de tombes : <strong>{{ result.nombreTombes }}</strong>
+                <span class="tombe-badge">🪦 Multi-tombes</span>
+            </p>
         </div>
 
         <!-- Table 1: Calcul des parts -->
@@ -108,17 +178,17 @@
             <thead>
                 <tr>
                     <th>Héritier</th>
-                    <th>Fraction simplifiée</th>
-                    <th>Fraction sur dénominateur commun</th>
-                    <th>Part en pourcentage (%)</th>
+                    <th class="text-center">Fraction simplifiée</th>
+                    <th class="text-center">Sur le dénominateur commun</th>
+                    <th class="text-center">Pourcentage (%)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let item of result.heritiers">
                     <td>{{ getHeirLabel(item) }}</td>
-                    <td>{{ getIrreducibleFractionDisplay(item) }}</td>
-                    <td>{{ getFractionDisplay(item) }}</td>
-                    <td>
+                    <td class="highlight-fraction">{{ getIrreducibleFractionDisplay(item) }}</td>
+                    <td class="highlight-denomin">{{ getFractionDisplay(item) }}</td>
+                    <td class="highlight-percent">
                         <ng-container *ngIf="item.part && item.part.denominateur !== 0">
                             {{ (item.part.numerateur / item.part.denominateur * 100) | number:'1.2-2' }}%
                         </ng-container>
@@ -129,23 +199,53 @@
         </table>
         <p class="table-note">* Les parts ci-dessus sont des parts individuelles (pour chaque héritier de cette catégorie).</p>
 
+        <!-- Détail des Tombes (mode étendu) -->
+        <div *ngIf="result.detailTombes && result.detailTombes.length > 0" class="tombes-detail-section">
+            <h4 class="table-heading spacing-top">Détail Wasiyya Wajiba par Tombe</h4>
+            <div *ngFor="let td of result.detailTombes" class="tombe-detail-card">
+                <div class="tombe-detail-header">
+                    <strong>🪦 {{ td.identifiant }}</strong>
+                    <span class="tombe-type">{{ td.lienParente === 'enfant' ? (td.sexeParentPredecede === 'M' ? 'Fils' : 'Fille') : (td.sexeParentPredecede === 'M' ? 'Frère' : 'Sœur') }} pré-décédé(e)</span>
+                    <span *ngIf="td.plafonnee" class="cap-badge">⚠️ Plafonnée à 1/3</span>
+                </div>
+                <div class="tombe-detail-body">
+                    <p>Part simulée : <strong>{{ td.partSimulee.numerateur }}/{{ td.partSimulee.denominateur }}</strong></p>
+                    <p>Wasiyya effective : <strong>{{ td.wasiyyaEffective.numerateur }}/{{ td.wasiyyaEffective.denominateur }}</strong></p>
+                    <table class="results-table mini-table" *ngIf="td.beneficiaires && td.beneficiaires.length > 0">
+                        <thead>
+                            <tr>
+                                <th>Bénéficiaire</th>
+                                <th>Part</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let b of td.beneficiaires">
+                                <td>{{ b.heritier }}</td>
+                                <td>{{ b.part.numerateur }}/{{ b.part.denominateur }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Table 2: Règles du partage -->
         <h4 class="table-heading spacing-top">Règles du partage</h4>
-        <table class="results-table" *ngIf="table2Rows && table2Rows.length > 0">
+        <table class="results-table mini-table" *ngIf="table2Rows && table2Rows.length > 0">
             <thead>
                 <tr>
                     <th>Type d'héritier en jeu</th>
-                    <th>Part légale (collective)</th>
-                    <th>Base de calcul</th>
-                    <th>Cadre (الإطار)</th>
+                    <th class="text-center">Part légale (collective)</th>
+                    <th class="text-center">Base de calcul</th>
+                    <th class="text-center">Cadre (الإطار)</th>
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let item of table2Rows">
-                    <td><strong>{{ item.label }}</strong></td>
-                    <td>{{ item.partLegale }}</td>
-                    <td class="text-muted"><small>{{ item.baseCalcul }}</small></td>
-                    <td class="arabic-text">{{ item.cadreLegal }}</td>
+                <tr *ngFor="let row of table2Rows">
+                    <td><strong>{{ row.label }}</strong></td>
+                    <td class="highlight-fraction">{{ row.partLegale }}</td>
+                    <td class="text-center text-muted"><small>{{ row.baseCalcul }}</small></td>
+                    <td class="arabic-text" style="background-color: #f1f8e9;">{{ row.cadreLegal }}</td>
                 </tr>
             </tbody>
         </table>

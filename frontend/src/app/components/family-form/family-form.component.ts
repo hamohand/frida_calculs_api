@@ -2,7 +2,7 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalculationService } from '../../services/calculation.service';
-import { FamilyRequest } from '../../models/family-request.model';
+import { FamilyRequest, ExtendedFamilyRequest, Tombe } from '../../models/family-request.model';
 import { HeritageResponse, Heritier } from '../../models/heritage-response.model';
 
 @Component({
@@ -20,6 +20,7 @@ export class FamilyFormComponent {
         pereVivant: false,
         mereVivante: false,
         grandPerePaternelVivant: false,
+        grandMerePaternelleVivante: false,
         nbFilles: 0,
         nbGarcons: 0,
         nbSoeurs: 0,
@@ -35,6 +36,10 @@ export class FamilyFormComponent {
     error: string | null = null;
     loading: boolean = false;
     table2Rows: any[] = [];
+
+    // Mode étendu multi-tombes
+    modeEtendu: boolean = false;
+    tombes: Tombe[] = [];
 
     constructor(private calculationService: CalculationService, private cdr: ChangeDetectorRef) { }
 
@@ -59,10 +64,23 @@ export class FamilyFormComponent {
     checkExclusions() {
         if (this.request.pereVivant) {
             this.request.grandPerePaternelVivant = false;
+            this.request.grandMerePaternelleVivante = false;
+        }
+        if (this.request.mereVivante) {
+            this.request.grandMerePaternelleVivante = false;
         }
         if (this.isSiblingsExcluded()) {
             this.request.nbSoeurs = 0;
             this.request.nbFreres = 0;
+            if (this.modeEtendu) {
+                this.tombes.forEach(t => {
+                    if (t.lienParente === 'frere_soeur') {
+                        t.lienParente = 'enfant';
+                        t.nbDescendantsMales = 0;
+                        t.nbDescendantesFemelles = 0;
+                    }
+                });
+            }
         }
         if (this.isOnclesExcluded()) {
             this.request.nbOncles = 0;
@@ -77,8 +95,10 @@ export class FamilyFormComponent {
         if (!req.sexeDefunt) return false;
         
         const hasHeir = (req.nbConjoints > 0) || req.pereVivant || req.mereVivante || 
-                        req.grandPerePaternelVivant || (req.nbFilles > 0) || (req.nbGarcons > 0) || 
-                        (req.nbSoeurs > 0) || (req.nbFreres > 0) || (req.nbOncles > 0) || (req.nbCousins > 0);
+                        req.grandPerePaternelVivant || req.grandMerePaternelleVivante || (req.nbFilles > 0) || (req.nbGarcons > 0) || 
+                        (req.nbSoeurs > 0) || (req.nbFreres > 0) || (req.nbOncles > 0) || (req.nbCousins > 0) ||
+                        (req.nbPetitsFils !== undefined && req.nbPetitsFils > 0) || 
+                        (req.nbPetitesFilles !== undefined && req.nbPetitesFilles > 0);
                         
         return hasHeir;
     }
@@ -86,6 +106,33 @@ export class FamilyFormComponent {
     onFieldChange() {
         this.checkExclusions();
         this.onSubmit();
+    }
+
+    onModeChange() {
+        if (this.modeEtendu && this.tombes.length === 0) {
+            this.addTombe();
+        }
+        // Effacer les résultats pour recalculer
+        this.result = null;
+        this.table2Rows = [];
+        this.onSubmit();
+    }
+
+    addTombe() {
+        this.tombes.push({
+            identifiant: 'tombe_' + (this.tombes.length + 1),
+            sexeParentPredecede: 'M',
+            lienParente: 'enfant',
+            nbDescendantsMales: 0,
+            nbDescendantesFemelles: 0
+        });
+    }
+
+    removeTombe(index: number) {
+        this.tombes.splice(index, 1);
+        // Renuméroter
+        this.tombes.forEach((t, i) => t.identifiant = 'tombe_' + (i + 1));
+        this.onFieldChange();
     }
 
     sortHeritiers(heritiers: Heritier[]): Heritier[] {
@@ -158,39 +205,67 @@ export class FamilyFormComponent {
         }
 
         this.loading = true;
-        console.log('Envoi de la demande:', this.request);
+
+        if (this.modeEtendu) {
+            this.onSubmitExtended();
+            return;
+        }
+
+        console.log('Envoi de la demande (simple):', this.request);
 
         this.calculationService.calculate(this.request).subscribe({
-            next: (response) => {
-                console.log('Réponse reçue:', response);
-                try {
-                    this.result = response;
-                    if (this.result && this.result.heritiers) {
-                        this.result.heritiers = this.sortHeritiers(this.result.heritiers);
-                    }
-                    this.updateTable2Rows();
-                    this.loading = false;
-                    this.cdr.detectChanges(); // Force UI update
-                } catch (e) {
-                    console.error('Erreur affichage:', e);
-                    this.error = 'Erreur lors de l\'affichage des résultats';
-                    this.loading = false;
-                }
-            },
-            error: (err) => {
-                console.error('Erreur API:', err);
-                // Sécurisation de l'affichage de l'erreur
-                let errorDetails = '';
-                try {
-                    errorDetails = (err.error && typeof err.error === 'object') ? JSON.stringify(err.error) : err.error;
-                } catch (e) {
-                    errorDetails = 'Erreur réseau ou objet non serialisable';
-                }
-                this.error = `Erreur: ${err.status} - ${err.message}. Détails: ${errorDetails}`;
-                this.loading = false;
-                this.cdr.detectChanges();
-            }
+            next: (response) => this.handleResponse(response),
+            error: (err) => this.handleError(err)
         });
+    }
+
+    onSubmitExtended() {
+        const extRequest: ExtendedFamilyRequest = {
+            ...this.request,
+            tombes: this.tombes
+        };
+
+        // En mode étendu, on ne passe pas les champs simples de wasiyya
+        delete (extRequest as any).nbPetitsFils;
+        delete (extRequest as any).nbPetitesFilles;
+        delete (extRequest as any).sexeParentPredecede;
+
+        console.log('Envoi de la demande (étendu):', extRequest);
+
+        this.calculationService.calculateExtended(extRequest).subscribe({
+            next: (response) => this.handleResponse(response),
+            error: (err) => this.handleError(err)
+        });
+    }
+
+    private handleResponse(response: HeritageResponse) {
+        console.log('Réponse reçue:', response);
+        try {
+            this.result = response;
+            if (this.result && this.result.heritiers) {
+                this.result.heritiers = this.sortHeritiers(this.result.heritiers);
+            }
+            this.updateTable2Rows();
+            this.loading = false;
+            this.cdr.detectChanges();
+        } catch (e) {
+            console.error('Erreur affichage:', e);
+            this.error = 'Erreur lors de l\'affichage des résultats';
+            this.loading = false;
+        }
+    }
+
+    private handleError(err: any) {
+        console.error('Erreur API:', err);
+        let errorDetails = '';
+        try {
+            errorDetails = (err.error && typeof err.error === 'object') ? JSON.stringify(err.error) : err.error;
+        } catch (e) {
+            errorDetails = 'Erreur réseau ou objet non serialisable';
+        }
+        this.error = `Erreur: ${err.status} - ${err.message}. Détails: ${errorDetails}`;
+        this.loading = false;
+        this.cdr.detectChanges();
     }
 
     getFractionDisplay(heritier: Heritier): string {
@@ -301,6 +376,10 @@ export class FamilyFormComponent {
                 return comp.nbOncles > 1 ? 'oncle paternel (chacun)' : 'oncle paternel';
             case 'cousin paternel':
                 return comp.nbCousins > 1 ? 'cousin paternel (chacun)' : 'cousin paternel';
+            case 'petit-fils':
+                return (comp.nbPetitsFils && comp.nbPetitsFils > 1) ? 'petit-fils (chacun)' : 'petit-fils';
+            case 'petite-fille':
+                return (comp.nbPetitesFilles && comp.nbPetitesFilles > 1) ? 'petite-fille (chacune)' : 'petite-fille';
             default:
                 return item.heritier;
         }

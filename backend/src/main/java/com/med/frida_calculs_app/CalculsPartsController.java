@@ -2,6 +2,7 @@ package com.med.frida_calculs_app;
 
 import com.med.frida_calculs_app.model.Heritier;
 import com.med.frida_calculs_app.model.FamilyRequest;
+import com.med.frida_calculs_app.model.ExtendedFamilyRequest;
 import com.med.frida_calculs_app.model.HeritageResponse;
 import com.med.frida_calculs_app.validator.FamilyRequestValidator;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,11 +27,15 @@ import java.util.List;
 public class CalculsPartsController {
 
         private final CalculPartsService calculPartsService;
+        private final CalculPartsEtenduService calculPartsEtenduService;
         private final FamilyRequestValidator validator;
 
         @Autowired
-        public CalculsPartsController(CalculPartsService calculPartsService, FamilyRequestValidator validator) {
+        public CalculsPartsController(CalculPartsService calculPartsService,
+                        CalculPartsEtenduService calculPartsEtenduService,
+                        FamilyRequestValidator validator) {
                 this.calculPartsService = calculPartsService;
+                this.calculPartsEtenduService = calculPartsEtenduService;
                 this.validator = validator;
         }
 
@@ -89,6 +94,46 @@ public class CalculsPartsController {
                 return ResponseEntity.ok(response);
         }
 
+        @PostMapping("/calculate-extended")
+        @Operation(summary = "Calcul étendu multi-tombes",
+                description = "Calcule les parts d'héritage avec plusieurs héritiers pré-décédés (tombes). " +
+                        "Chaque tombe représente un héritier pré-décédé (enfant ou frère/sœur) et ses descendants. " +
+                        "La wasiyya wajiba totale est plafonnée à 1/3 globalement.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Calcul étendu effectué avec succès",
+                                content = @Content(schema = @Schema(implementation = HeritageResponse.class))),
+                        @ApiResponse(responseCode = "400", description = "Données invalides"),
+                        @ApiResponse(responseCode = "500", description = "Erreur interne du serveur")
+        })
+        public ResponseEntity<HeritageResponse> calculerHeritageEtendu(
+                        @Valid @RequestBody ExtendedFamilyRequest request) {
+                log.info("Requête de calcul ÉTENDU reçue: {} tombe(s)", 
+                        request.getTombes() != null ? request.getTombes().size() : 0);
+
+                // Validation métier de base
+                validator.validate(request);
+
+                // Calcul étendu
+                CalculPartsEtenduService.CalculEtenduResult result = 
+                        calculPartsEtenduService.calculPartsEtendu(request);
+
+                // Construction de la réponse enrichie
+                HeritageResponse response = HeritageResponse.fromCalculation(
+                                request,
+                                result.getHeritiers(),
+                                "Calcul étendu multi-tombes effectué avec succès (" + 
+                                        result.getNombreTombes() + " tombe(s))");
+
+                // Ajouter les détails des tombes
+                response.setDetailTombes(result.getDetailTombes());
+                response.setNombreTombes(result.getNombreTombes());
+
+                log.info("Calcul étendu terminé: {} héritier(s), {} tombe(s)",
+                                response.getNombreHeritiers(), result.getNombreTombes());
+
+                return ResponseEntity.ok(response);
+        }
+
         @PostMapping("/calculs")
         @Operation(summary = "[Déprécié] Calculer les parts d'héritage", description = "Endpoint déprécié. Utilisez /calculate à la place.", deprecated = true)
         @ApiResponses({
@@ -104,7 +149,7 @@ public class CalculsPartsController {
         @GetMapping("/status")
         @Operation(summary = "Vérifier le statut de l'API")
         public ResponseEntity<String> status() {
-                return ResponseEntity.ok("API Frida Calculs - v1.0.0 - Opérationnelle ✓");
+                return ResponseEntity.ok("API Frida Calculs - v1.1.0 - Opérationnelle ✓ (Multi-tombes activé)");
         }
 
         @GetMapping("/testHeritier")

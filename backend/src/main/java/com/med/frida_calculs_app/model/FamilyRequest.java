@@ -4,12 +4,12 @@ import com.med.frida_calculs_app.enums.Sexe;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Requête pour calculer les parts d'héritage selon la loi islamique")
@@ -33,6 +33,9 @@ public class FamilyRequest {
 
     @Schema(description = "Le grand-père paternel est-il vivant?", example = "false", defaultValue = "false")
     private boolean grandPerePaternelVivant;
+
+    @Schema(description = "La grand-mère paternelle est-elle vivante?", example = "false", defaultValue = "false")
+    private boolean grandMerePaternelleVivante;
 
     @Min(value = 0, message = "Le nombre de filles ne peut pas être négatif")
     @Max(value = 50, message = "Le nombre de filles ne peut pas dépasser 50")
@@ -81,7 +84,7 @@ public class FamilyRequest {
      * Validation métier : au moins un héritier doit être présent
      */
     public boolean hasAtLeastOneHeir() {
-        return (nbConjoints != null && nbConjoints > 0) || pereVivant || mereVivante || grandPerePaternelVivant ||
+        return (nbConjoints != null && nbConjoints > 0) || pereVivant || mereVivante || grandPerePaternelVivant || grandMerePaternelleVivante ||
                 (nbFilles != null && nbFilles > 0) ||
                 (nbGarcons != null && nbGarcons > 0) ||
                 (nbSoeurs != null && nbSoeurs > 0) ||

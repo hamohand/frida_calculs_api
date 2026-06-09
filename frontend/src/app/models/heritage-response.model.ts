@@ -4,12 +4,22 @@ export interface Fraction {
 }
 
 export interface Heritier {
-    heritier: string; // Ensure this matches Java field name
+    heritier: string;
     baseCalcul?: string;
     part: Fraction;
     partIrreductible?: Fraction;
     partLegale?: Fraction;
     cadreLegal?: string;
+}
+
+export interface TombeDetail {
+    identifiant: string;
+    sexeParentPredecede: string;
+    lienParente: string;
+    partSimulee: Fraction;
+    wasiyyaEffective: Fraction;
+    plafonnee: boolean;
+    beneficiaires: Heritier[];
 }
 
 export interface HeritageResponse {
@@ -22,4 +32,9 @@ export interface HeritageResponse {
     message: string;
     calculComplet: boolean;
     partRestante?: Fraction;
+    grandMerePaternelleVivante: boolean;
+
+    // Champs multi-tombes (mode étendu uniquement)
+    detailTombes?: TombeDetail[];
+    nombreTombes?: number;
 }
